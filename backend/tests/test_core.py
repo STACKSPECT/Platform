@@ -307,6 +307,129 @@ def test_sin_run_id_no_se_intenta_subir_nada(tmp_path):
     assert len(log.path.read_text(encoding="utf-8").splitlines()) == 1
 
 
+# ── el episodio en vivo ──────────────────────────────────────────────────────
+
+def test_begin_abre_el_episodio_en_curso(tmp_path):
+    """Sin una fila `running` no hay nada a lo que Live pueda suscribirse."""
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+
+    log.begin(seed=37, n_objects=10)
+
+    (_, tabla, filas), = cliente.llamadas
+    assert tabla == "episodes"
+    assert filas[0]["status"] == "running"
+    assert filas[0]["seed"] == 37
+    assert filas[0]["n_objects"] == 10
+    assert filas[0]["n_placed"] == 0
+    assert log.episode_id == "episodes-1"
+
+
+def test_begin_hereda_la_tarea_y_el_nivel_del_run(tmp_path):
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+
+    log.begin(seed=1)
+
+    assert cliente.llamadas[0][2][0]["task"] == "palletizing"
+    assert cliente.llamadas[0][2][0]["level"] == 2
+
+
+def test_las_filas_hijas_van_colgando_del_episodio_abierto(tmp_path):
+    """Es lo que Realtime reparte y lo que hace que el palé se monte a la vista."""
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+    log.begin(seed=1, n_objects=2)
+
+    log.event(ts=0.4, seq=0, kind="perceive")
+    log.pallet_state(after_seq=0, mass_kg=1.2, cog_x=0.0, cog_y=0.0, cog_z=0.1)
+    log.placement(seq=0, package_id="pkg_00", package_type="caja baja")
+
+    assert cliente.tablas() == ["episodes", "events", "pallet_states", "placements"]
+    for _, tabla, filas in cliente.llamadas[1:]:
+        assert filas[0]["episode_id"] == "episodes-1", tabla
+
+
+def test_end_cierra_el_episodio_con_un_patch(tmp_path):
+    """El PATCH es el UPDATE de `episodes` al que Live está suscrita."""
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+    log.begin(seed=7, n_objects=10)
+
+    log.end(episodio())
+
+    verbo, tabla, match, datos = cliente.llamadas[-1]
+    assert (verbo, tabla) == ("patch", "episodes")
+    assert match == {"id": "episodes-1"}
+    assert datos["status"] == "failure"
+    assert datos["failure"] == "stack_collapse"
+    assert datos["n_placed"] == 7
+    assert datos["ended_at"] == "now()"
+    # El run no se toca: el episodio no sabe a qué run pertenece más que al abrirse.
+    assert "run_id" not in datos
+
+
+def test_end_escribe_en_disco_antes_que_nada(tmp_path):
+    """La promesa dura también vale para el camino en vivo."""
+    cliente = ClienteFalso(falla_en={"episodes"})
+    log = log_conectado(tmp_path, cliente)
+    log.begin(seed=7)
+
+    log.end(episodio())
+
+    assert len(log.path.read_text(encoding="utf-8").splitlines()) == 1
+
+
+def test_end_cierra_aunque_begin_no_llegara_a_abrir(tmp_path):
+    """Sin remoto, `begin()`/`end()` tienen que seguir escribiendo el jsonl."""
+    log = RunLog(tmp_path, task="palletizing", level=2, remote=False)
+
+    log.begin(seed=7)
+    log.end(episodio())
+
+    assert log.episode_id is None
+    assert len(log.path.read_text(encoding="utf-8").splitlines()) == 1
+
+
+def test_sin_begin_las_filas_hijas_no_van_a_ninguna_parte(tmp_path):
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+
+    log.event(ts=0.1, seq=0, kind="place")
+
+    assert cliente.llamadas == []
+
+
+def test_un_episodio_no_se_cierra_dos_veces(tmp_path):
+    """El segundo `end()` sin `begin()` de por medio escribe en disco pero no vuelve a
+    tocar la fila del anterior, que ya estaba cerrada."""
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+    log.begin(seed=7)
+
+    log.end(episodio())
+    log.end(episodio(seed=8))
+
+    assert len([c for c in cliente.llamadas if c[0] == "patch"]) == 1
+    assert len(log.path.read_text(encoding="utf-8").splitlines()) == 2
+
+
+def test_dos_episodios_seguidos_no_se_mezclan(tmp_path):
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+
+    log.begin(seed=1)
+    log.event(ts=0.1, seq=0, kind="place")
+    log.end(episodio(seed=1))
+
+    log.begin(seed=2)
+    log.event(ts=0.1, seq=0, kind="place")
+    log.end(episodio(seed=2))
+
+    eventos = [c for c in cliente.llamadas if c[1] == "events"]
+    assert [c[2][0]["episode_id"] for c in eventos] == ["episodes-1", "episodes-2"]
+
+
 def test_close_cierra_el_run(tmp_path):
     cliente = ClienteFalso()
     log = log_conectado(tmp_path, cliente)

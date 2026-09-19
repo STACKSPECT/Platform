@@ -214,7 +214,13 @@ class RunLog:
 
         self.client = Supabase.from_env(repo) if remote else None
         self.run_id: str | None = None
+        # El episodio abierto por `begin()`, si se está usando el modo en vivo.
+        self.episode_id: str | None = None
         self._warned = False
+
+        # La identidad del run, para no repetirla en cada `begin()`.
+        self.task = task
+        self.level = int(level)
 
         if self.client is None:
             return
@@ -253,6 +259,68 @@ class RunLog:
             batch = [{**item, "episode_id": episode_id} for item in items]
             if batch:
                 self._try(table, lambda t=table, b=batch: self.client.insert(t, b))
+
+    # ── episodio en vivo ─────────────────────────────────────────────────────
+    #
+    # `episode()` sube el episodio YA terminado con todas sus filas hijas de golpe.
+    # Para un benchmark está bien, pero entonces la pantalla Live no tiene nada a lo
+    # que suscribirse: nunca existe una fila `running` ni llega un UPDATE de
+    # `episodes`, así que el jurado ve el palé ya hecho en vez de montándose
+    # (API.md §4). Con `begin()` / `event()` / `end()` el episodio se abre primero y
+    # las filas hijas van llegando, que es justo lo que Realtime reparte.
+
+    def begin(self, seed: int, *, n_objects: int = 0,
+              task: str | None = None, level: int | None = None) -> None:
+        """Abre un episodio en curso. A partir de aquí `event()`, `pallet_state()` y
+        `placement()` van soltando filas según ocurren."""
+        self.episode_id = None
+        if not self.run_id:
+            return
+        rows = self._try("episodes", lambda: self.client.insert("episodes", [{
+            "run_id": self.run_id,
+            "seed": int(seed),
+            "task": task or self.task,
+            "level": self.level if level is None else int(level),
+            "status": "running",
+            "n_objects": int(n_objects),
+            "n_placed": 0,
+        }], returning=True))
+        if rows:
+            self.episode_id = rows[0]["id"]
+
+    def event(self, **row: Any) -> None:
+        self._push("events", row)
+
+    def pallet_state(self, **row: Any) -> None:
+        self._push("pallet_states", row)
+
+    def placement(self, **row: Any) -> None:
+        self._push("placements", row)
+
+    def end(self, result: EpisodeResult) -> None:
+        """Cierra el episodio abierto con `begin()`. El disco primero, siempre.
+
+        El PATCH es además el UPDATE de `episodes` al que Live está suscrita: es lo que
+        le dice a la pantalla que este episodio ha terminado y cómo."""
+        self.writer.write(result)
+        episode_id, self.episode_id = self.episode_id, None
+        if not episode_id or not self.run_id:
+            return
+
+        row = episode_row(result, self.run_id)
+        row.pop("run_id")
+        row["ended_at"] = "now()"
+        self._try("episodes", lambda: self.client.patch(
+            "episodes", {"id": episode_id}, row))
+
+    def _push(self, table: str, row: dict) -> None:
+        """Una fila hija del episodio abierto. Sin `begin()` no hay dónde colgarla."""
+        if not self.episode_id:
+            return
+        self._try(table, lambda: self.client.insert(
+            table, [{**row, "episode_id": self.episode_id}]))
+
+    # ── cierre del run ───────────────────────────────────────────────────────
 
     def close(self) -> None:
         """Cierra el run. Sin esto `ended_at` queda a null y la interfaz no distingue
