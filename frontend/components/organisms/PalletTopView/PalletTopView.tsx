@@ -1,14 +1,20 @@
 import type { PalletState, Placement } from "@/lib/supabase";
+import { PALLET_DEFAULT, type PalletSize } from "@/lib/pallet";
 import { CogMarker, SceneLabel, SceneRect } from "../../atoms";
 import { buildTopView } from "./PalletTopView.helper";
 import styles from "./PalletTopView.module.css";
 
-type Props = { placements: Placement[]; state: PalletState | null };
+type Props = {
+  placements: Placement[];
+  state: PalletState | null;
+  size?: PalletSize;
+};
 
 /** El palé visto desde arriba, con la cruz del centro de gravedad sobre lo que lo
  *  sostiene. Si el jurado entiende una sola cosa sin explicación, tiene que ser ésta. */
-export function PalletTopView({ placements, state }: Props) {
-  const v = buildTopView(placements, state);
+export function PalletTopView({ placements, state,
+                                size = PALLET_DEFAULT }: Props) {
+  const v = buildTopView(placements, state, undefined, size);
 
   return (
     <svg className={styles.svg} viewBox={`0 0 ${v.width} ${v.height}`} role="img"

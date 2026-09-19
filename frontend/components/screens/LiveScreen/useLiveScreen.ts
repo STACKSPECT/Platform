@@ -3,6 +3,7 @@ import {
   useEpisodeDetail, useEpisodeRealtime, useEpisodes, useLatestEpisode,
 } from "@/api/hooks";
 import { configured } from "@/lib/supabase";
+import { palletSize } from "@/lib/ui";
 import { useNow } from "@/hooks/useNow";
 import { buildIdentity } from "../../organisms/IdentityBar";
 import { buildKpis } from "../../organisms/KpiGrid";
@@ -52,9 +53,12 @@ export function useLiveScreen() {
       identity: buildIdentity({
         episode, runEpisodes: runEpisodes.data ?? [], events, stale,
       }),
-      kpis: buildKpis(episode, last),
+      kpis: buildKpis(episode, last, placements),
       result: resultOf(episode),
       placements, last, events,
+      // El palé puede ser una maqueta a escala: sin esto se dibuja a 1200x800
+      // y todas las cotas salen mal por el mismo factor.
+      palletSize: palletSize(episode),
       sideNote: sideViewNote(episode, last),
       feedNote: feedNote(episode),
     },

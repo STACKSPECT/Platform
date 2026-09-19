@@ -20,7 +20,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 BACKEND = Path(__file__).resolve().parent
@@ -55,7 +55,7 @@ def started_at(directory: Path) -> str | None:
     stamp = datetime.strptime(match.group(1), "%Y%m%d-%H%M%S")
     # Las carpetas se nombraron en hora local: se marcan como tal antes de pasar a
     # UTC, o la interfaz las pinta desplazadas dos horas.
-    return stamp.astimezone().astimezone(timezone.utc).isoformat()
+    return stamp.astimezone().astimezone(UTC).isoformat()
 
 
 def run_row(directory: Path, rows: list[dict]) -> dict:

@@ -1,6 +1,7 @@
 import type { PalletState, Placement } from "@/lib/supabase";
 import {
-  PALLET_X, PALLET_Y, drawable, envelope, lastPlacement, type Box,
+  PALLET_DEFAULT, drawable, envelope, lastPlacement,
+  type Box, type PalletSize,
 } from "@/lib/pallet";
 import { mm, signedMm, stabilityState, type State } from "@/lib/ui";
 
@@ -33,12 +34,14 @@ export type TopViewModel = {
  */
 export function buildTopView(
   placements: Placement[], state: PalletState | null, height = 290,
+  size: PalletSize = PALLET_DEFAULT,
 ): TopViewModel {
-  const scale = (height - PAD.t - PAD.b) / PALLET_Y;
-  const width = PALLET_X * scale + PAD.l + PAD.r;
+  const [PX, PY] = size;
+  const scale = (height - PAD.t - PAD.b) / PY;
+  const width = PX * scale + PAD.l + PAD.r;
 
-  const X = (x: number) => PAD.l + (x + PALLET_X / 2) * scale;
-  const Y = (y: number) => PAD.t + (PALLET_Y / 2 - y) * scale;
+  const X = (x: number) => PAD.l + (x + PX / 2) * scale;
+  const Y = (y: number) => PAD.t + (PY / 2 - y) * scale;
   const rectOf = (cx: number, cy: number, dx: number, dy: number): Rect =>
     ({ x: X(cx - dx / 2), y: Y(cy + dy / 2), width: dx * scale, height: dy * scale });
   const boxRect = (b: Box): Rect =>
@@ -70,7 +73,7 @@ export function buildTopView(
 
   return {
     width, height,
-    frame: boxRect({ x0: -PALLET_X / 2, x1: PALLET_X / 2, y0: -PALLET_Y / 2, y1: PALLET_Y / 2 }),
+    frame: boxRect({ x0: -PX / 2, x1: PX / 2, y0: -PY / 2, y1: PY / 2 }),
     planned: last?.planned_pose && last.dims_m
       ? rectOf(last.planned_pose.x, last.planned_pose.y, last.dims_m[0], last.dims_m[1])
       : null,
@@ -80,8 +83,8 @@ export function buildTopView(
     tone: stabilityState(margin),
     margin: cog && margin != null
       ? { x: cog.x + 18, y: cog.y + 4, text: signedMm(margin) } : null,
-    widthLabel: { x: X(0), y: PAD.t - 12, text: mm(PALLET_X, 0) },
-    depthLabel: { x: PAD.l - 14, y: Y(0), text: mm(PALLET_Y, 0) },
+    widthLabel: { x: X(0), y: PAD.t - 12, text: mm(PX, 0) },
+    depthLabel: { x: PAD.l - 14, y: Y(0), text: mm(PY, 0) },
     caption: below && layer
       ? { x: X(0), y: height - 12,
           text: `polígono de soporte · contacto capa ${layer - 1}-${layer}` }

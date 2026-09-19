@@ -27,33 +27,25 @@ import argparse
 import math
 import random
 import sys
-import urllib.request
-from datetime import datetime, timedelta, timezone
+import zlib
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 BACKEND = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BACKEND))
 REPO = BACKEND.parent
 
-from theker_telemetry import EpisodeResult, Supabase          # noqa: E402
+from theker_telemetry import EpisodeResult, Supabase  # noqa: E402
+
+# La geometría vive en el paquete: la calculan este sembrado y la simulación, y dos
+# implementaciones del mismo número acaban discrepando.
+from theker_telemetry.pallet import (  # noqa: E402
+    stability_margin,
+)
 
 # Palé europeo. El diseño insiste en que se dibuje a escala real, así que las medidas
 # tienen que ser las de verdad y no un cuadrado bonito.
 PALLET_X, PALLET_Y = 1.200, 0.800
-
-# El margen de estabilidad NO se mide contra el borde del palé, ni contra una
-# envolvente fija. Un palé vuelca cuando, frenando o girando, el momento de vuelco
-# supera al de restitución: con una aceleración lateral `a`, el montón cae si
-#
-#     a/g  >  d / h        d = distancia del CoG al borde del apoyo, h = altura del CoG
-#
-# de donde el margen que queda es `d - (a/g)*h`. Esto es lo que hace que el indicador
-# signifique algo: apilar alto y descentrado lo empeora a la vez, que es exactamente
-# el compromiso que el planificador tiene que resolver.
-#
-# El caso que se exige aguantar es un giro normal de carretilla, no estático. El reto
-# pide "un palé que aguante el transporte", así que el listón se pone ahí.
-TRANSPORT_ACCEL_G = 0.28
 
 # Catálogo de paquetes: base de 580x380, el medio módulo europeo con la holgura que se
 # deja de verdad en planta (un encaje al milímetro haría que cualquier error saliera
@@ -98,31 +90,6 @@ CAMPAIGN = [
     ("c40aa19", 2, "recentrado-v1",     "ventana de 3 y recentrado del CoG, nivel 2",      0.008, 0.002, 3, True),
     ("8c5cbf4", 2, "recentrado-v2",     "planificador de capas con recentrado de CoG",     0.005, 0.001, 4, True),
 ]
-
-
-def support_polygon(base: list[tuple[float, float, float, float]]
-                    ) -> tuple[float, float, float, float]:
-    """Rectángulo que apoya en el palé: la envolvente de las cajas de la capa 1.
-
-    Lo que sostiene el montón es lo que toca el suelo, no el palé entero. Un palé con
-    una sola caja en una esquina tiene un apoyo pequeño aunque la tabla sea enorme."""
-    xs0 = [x - dx / 2 for x, _, dx, _ in base]
-    xs1 = [x + dx / 2 for x, _, dx, _ in base]
-    ys0 = [y - dy / 2 for _, y, _, dy in base]
-    ys1 = [y + dy / 2 for _, y, _, dy in base]
-    return min(xs0), max(xs1), min(ys0), max(ys1)
-
-
-def stability_margin(cog_x: float, cog_y: float, cog_z: float,
-                     base: list[tuple[float, float, float, float]]) -> float:
-    """Margen de estabilidad en metros. Negativo = vuelca en la primera frenada.
-
-    Es el indicador que define toda la interfaz, así que se calcula en un solo sitio."""
-    if not base:
-        return 0.0
-    x0, x1, y0, y1 = support_polygon(base)
-    d_edge = min(cog_x - x0, x1 - cog_x, cog_y - y0, y1 - cog_y)
-    return d_edge - TRANSPORT_ACCEL_G * cog_z
 
 
 def _plan(queue: list, free: list[int], lookahead: int, balance: bool,
@@ -273,6 +240,16 @@ def build_episode(rng: random.Random, precision: float, bias: float,
             "final": states[-1] if states else None}
 
 
+def episode_seed(sha: str, seed: int) -> int:
+    """Semilla del RNG para un (commit, episodio).
+
+    Con `hash()` esto NO era determinista: CPython aleatoriza el hash de las cadenas
+    por proceso desde la 3.3 (PYTHONHASHSEED), así que cada ejecución del sembrado
+    producía un histórico distinto mientras el comentario prometía lo contrario. Un
+    histórico que cambia solo no sirve para enseñar una curva de mejora."""
+    return zlib.crc32(f"{sha}:{seed}".encode())
+
+
 def seed_run(client: Supabase, sha: str, level: int, label: str, description: str,
              precision: float, bias: float, lookahead: int, balance: bool, *, seeds: range, started: datetime,
              rng: random.Random) -> tuple[str, int]:
@@ -288,7 +265,7 @@ def seed_run(client: Supabase, sha: str, level: int, label: str, description: st
     for seed in seeds:
         # Semilla determinista por (commit, episodio): relanzar el sembrado dos veces
         # da el mismo histórico, igual que exigimos al simulador de verdad.
-        rng.seed(hash((sha, seed)) & 0xFFFFFFFF)
+        rng.seed(episode_seed(sha, seed))
         ep = build_episode(rng, precision, bias, lookahead, balance,
                            PACKAGES_BY_LEVEL[level])
         result = EpisodeResult(
@@ -325,10 +302,7 @@ def wipe(client: Supabase) -> int:
     """Borra solo lo sembrado. Lo real no se toca ni por accidente."""
     rows = client.get("runs", select="id", synthetic="true")
     for row in rows:
-        request = urllib.request.Request(
-            f"{client.base}/runs?id=eq.{row['id']}", method="DELETE",
-            headers=client._headers("return=minimal"))
-        urllib.request.urlopen(request, timeout=10).close()
+        client.delete("runs", {"id": row["id"]})
     return len(rows)
 
 
@@ -350,7 +324,7 @@ def main() -> int:
         return 0
 
     rng = random.Random()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     for i, (sha, level, label, desc, precision, bias, lookahead, balance) in enumerate(CAMPAIGN[:args.runs]):
         # Las más viejas primero: la campaña cuenta una mejora a lo largo del tiempo.
         started = now - timedelta(hours=(len(CAMPAIGN) - i) * 9)
