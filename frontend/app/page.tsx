@@ -1,5 +1,5 @@
-import { LiveScreen } from "@/components/screens/LiveScreen";
+import { DashboardScreen } from "@/components/screens/DashboardScreen";
 
 export default function Page() {
-  return <LiveScreen />;
+  return <DashboardScreen />;
 }

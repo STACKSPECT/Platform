@@ -2,6 +2,11 @@ import { Text } from "../../atoms";
 import { LevelCard, type LevelCardView } from "../LevelCard";
 import styles from "./TaskSection.module.css";
 
+/** El id que lleva a la tarjeta de un nivel de una tarea. */
+export function anchorOf(task: string, levelKey: string): string {
+  return `${task}-nivel-${levelKey}`;
+}
+
 export type TaskSectionView = {
   task: string;
   title: string;
@@ -20,7 +25,11 @@ export function TaskSection({ view }: { view: TaskSectionView }) {
         <Text variant="caption" tone="faint">{view.subtitle}</Text>
       </div>
       <div className={styles.grid}>
-        {view.levels.map((l) => <LevelCard key={l.key} view={l} />)}
+        {view.levels.map((l) => (
+          <div key={l.key} id={anchorOf(view.task, l.key)} className={styles.anchor}>
+            <LevelCard view={l} />
+          </div>
+        ))}
       </div>
     </section>
   );

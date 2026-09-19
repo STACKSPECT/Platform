@@ -1,0 +1,1 @@
+export { VerdictChip } from "./VerdictChip";

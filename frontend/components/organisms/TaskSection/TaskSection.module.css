@@ -1,3 +1,6 @@
+/* Al llegar desde un chip, la tarjeta no queda pegada al borde de la pantalla. */
+.anchor { scroll-margin-top: var(--page-pad); min-width: 0; }
+
 .section { display: flex; flex-direction: column; gap: 14px; }
 
 .header { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }

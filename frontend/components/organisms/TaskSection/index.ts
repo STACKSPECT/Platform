@@ -1,2 +1,2 @@
-export { TaskSection } from "./TaskSection";
+export { TaskSection, anchorOf } from "./TaskSection";
 export type { TaskSectionView } from "./TaskSection";

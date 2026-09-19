@@ -19,5 +19,6 @@ export type { EpisodeView } from "./EpisodeDashboard";
 export { RunHeader, buildRunHeader } from "./RunHeader";
 export { LevelCard, buildLevelCard, kindOf, KIND_TEXT } from "./LevelCard";
 export type { DataKind, LevelCardView } from "./LevelCard";
-export { TaskSection } from "./TaskSection";
+export { TaskSection, anchorOf } from "./TaskSection";
 export type { TaskSectionView } from "./TaskSection";
+export { OverviewStrip } from "./OverviewStrip";

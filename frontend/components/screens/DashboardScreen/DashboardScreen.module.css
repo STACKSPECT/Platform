@@ -1,0 +1,36 @@
+/* Altura fija, la de la ventana menos la barra global: la página no scrollea nunca. Lo que no
+   cabe (varias tareas con varios niveles) scrollea DENTRO de la pantalla. */
+.screen {
+  height: calc(100vh - var(--topbar-h));
+  height: calc(100dvh - var(--topbar-h));
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: var(--page-pad);
+}
+
+/* Lo que no cabe se scrollea, no se encoge: las tarjetas llevan `overflow: hidden` y, en una
+   columna flex, un hijo así se aplastaría antes que empujar. */
+.screen > * { flex-shrink: 0; }
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+}
+.titles { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.title { font-size: 26px; font-weight: 700; }
+
+.guide { display: flex; flex-direction: column; gap: 10px; }
+
+/* Ir a una tarjeta desde un chip se desliza; con «reducir movimiento», salta. */
+@media (prefers-reduced-motion: no-preference) {
+  .screen { scroll-behavior: smooth; }
+}
+
+@media (max-width: 860px) {
+  .screen { padding: 16px; gap: 20px; }
+}
