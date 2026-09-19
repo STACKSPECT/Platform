@@ -78,6 +78,21 @@ export function kg(v: number | null | undefined, digits = 1): string {
   return `${v.toFixed(digits)}${NBSP}kg`;
 }
 
+/** Un número con signo explícito y el «−» tipográfico. Un cero redondeado no lleva signo:
+ *  «−0» no significa nada. La unidad la pone quien lo use. */
+export function signedNumber(n: number, digits = 0): string {
+  const rounded = Number(Math.abs(n).toFixed(digits));
+  const sign = rounded === 0 ? "" : n < 0 ? "−" : "+";
+  return `${sign}${rounded.toFixed(digits)}`;
+}
+
+/** Parte una cantidad ya formateada ("31 mm") en número y unidad, para pintarlas con
+ *  tamaños distintos. No convierte nada: solo trocea lo que devuelven mm/pct/seconds. */
+export function splitQuantity(formatted: string): { value: string; unit: string } {
+  const [value, ...rest] = formatted.split(/\s/);
+  return { value, unit: rest.join(" ") };
+}
+
 /* ── estados ────────────────────────────────────────────────────────────── */
 
 export type State = "ok" | "warn" | "bad";
@@ -124,6 +139,7 @@ export function clockTime(iso: string | null | undefined): string {
 export const TASK_TEXT: Record<string, string> = {
   induction: "inducción",
   palletizing: "paletizado",
+  "paletizado-guionizado": "paletizado guionizado",
 };
 
 export const EVENT_TEXT: Record<string, string> = {
@@ -134,3 +150,26 @@ export const EVENT_TEXT: Record<string, string> = {
   settle: "asentado",
   fail: "fallo",
 };
+
+/* Tamaño real del palé, en metros.
+ *
+ * El palé puede ser una maqueta a escala: la pinza del Panda abre 80 mm y un europeo es
+ * inagarrable. Dibujarlo siempre a 1200x800 deja todas las cotas mal por el mismo
+ * factor, y el diseño exige que se pinte a escala real con sus medidas.
+ *
+ * Se mira primero `runs.config`, que es su sitio, y después `episodes.metrics`, donde
+ * la simulación lo metió mientras la columna no se podía escribir. El europeo es el
+ * último recurso. */
+export function palletSize(
+  fuente: { config?: Record<string, unknown>; metrics?: Record<string, unknown> } | null,
+): readonly [number, number] {
+  for (const bolsa of [fuente?.config, fuente?.metrics]) {
+    const v = bolsa?.["pallet_size_m"];
+    if (Array.isArray(v) && v.length >= 2
+        && typeof v[0] === "number" && typeof v[1] === "number"
+        && v[0] > 0 && v[1] > 0) {
+      return [v[0], v[1]];
+    }
+  }
+  return [1.2, 0.8];
+}

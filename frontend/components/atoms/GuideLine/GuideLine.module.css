@@ -1,0 +1,6 @@
+.line { stroke-width: 1.2; }
+.faint { stroke: var(--text-4); }
+.ok    { stroke: var(--ok); }
+.warn  { stroke: var(--warn); }
+.bad   { stroke: var(--bad); }
+.dashed { stroke-dasharray: 6 4; }

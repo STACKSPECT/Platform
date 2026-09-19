@@ -28,6 +28,7 @@ percepción. Este repo solo sabe de episodios, métricas y pantallas.
 backend/                 SQL + SDK. Supabase ES el backend; no hay servidor propio.
   sql/001_schema.sql       tablas, vistas y RLS
   sql/002_design.sql       columnas y vistas que pide el diseño
+  sql/003_snapshots.sql    las fotos del palé (solo la URL; los PNG van a Storage)
   theker_telemetry/        el SDK que importa quien produce episodios
     schema.py                EpisodeResult, FAILURES, TASKS, RunWriter
     core.py                  cliente PostgREST y RunLog
@@ -37,14 +38,29 @@ backend/                 SQL + SDK. Supabase ES el backend; no hay servidor prop
 
 frontend/                Next.js 16. Lee Supabase con la clave anon, bajo RLS.
   app/                     rutas: / (Live), /runs, /runs/[id], /runs/[id]/[seed]
-  components/              Pallet, Episode, Runs, primitives, TopBar
+  api/clients/             una función por endpoint de PostgREST
+  api/hooks/               los mismos, envueltos en TanStack Query
+  components/              atoms / organisms / screens
   lib/ui.ts                TODA conversión de unidades, en un solo sitio
-  lib/supabase.ts          tipos, consultas y comparability()
+  styles/colors.css        TODOS los colores (tema claro y oscuro), en un solo sitio
+  lib/pallet.ts            geometría del dibujo; el tamaño del palé NO es fijo
+  lib/supabase.ts          los tipos, que son la mitad del contrato
 
 docs/
   BRIEFING-observabilidad.md   qué se construye y por qué
+  API.md                       el contrato: endpoints, tipos y vocabularios
   design/                      los 11 tableros del diseño, a 1440 px
+  img/                         capturas y variantes de marca que usa el README
+
+README.md                cara pública del repo, en inglés: requisitos, instalación,
+                         desarrollo, uso, dependencias con su auditoría de licencias.
+CONTRIBUTING.md          el flujo real: ramas, commits, comprobaciones y qué exige CI.
+LICENSE                  MIT, 2026 STACKSPECT.
 ```
+
+Los tres anteriores están **en inglés** a propósito, y son los únicos: son lo que lee
+quien llega de fuera. Todo lo demás —este documento, `docs/`, los comentarios— sigue en
+castellano.
 
 **La dependencia va en un solo sentido.** La simulación importa `theker_telemetry`;
 esta plataforma no sabe que MuJoCo existe. Por eso el esquema de métricas vive aquí y
@@ -59,6 +75,7 @@ simulación no se lleva por delante la observabilidad.
 # 1. Esquema: pegar en el SQL editor de Supabase, en orden. Son idempotentes.
 backend/sql/001_schema.sql
 backend/sql/002_design.sql
+backend/sql/003_snapshots.sql
 
 # 2. Credenciales. .env en la raíz (gitignorado):
 #    SUPABASE_URL=https://xxxx.supabase.co
@@ -69,15 +86,33 @@ backend/sql/002_design.sql
 pip install -e backend
 
 # 4. Datos con los que ver la interfaz
-python backend/seed/palletizing.py
+python backend/seed/palletizing.py            # histórico sembrado, 6 ejecuciones
+python backend/seed/ejemplo_contrato.py       # una entrada que toca TODO el contrato
+python backend/seed/humo_live.py              # monta un palé en vivo: comprueba Live
 python backend/backfill.py --runs-dir <repo de la simulación>/simulation/runs
 
-# 5. Front
+# 5. Todo de una vez: comprueba credenciales, dependencias y esquema, y arranca.
+./dev.sh                  # --check para solo comprobar, --seed para sembrar antes
+
+# ...o solo el front, si ya sabes que lo demás está en su sitio
 cd frontend && npm install && npm run dev
+
+# 6. Tests. Sin DATABASE_URL corren los que no tocan la red; con él se añaden los
+#    que aplican el esquema de verdad y verifican el contrato con el front.
+pip install -e 'backend[dev]'
+docker run --rm -d --name pg -e POSTGRES_PASSWORD=postgres -p 5433:5432 postgres:16
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5433/postgres
+ruff check backend && pytest backend -q
 ```
 
-`frontend/.env.local` lleva **solo** `NEXT_PUBLIC_SUPABASE_URL` y
-`NEXT_PUBLIC_SUPABASE_ANON_KEY`. La `service_role` nunca entra ahí: se salta RLS.
+**Un solo fichero de credenciales**, el `.env` de la raíz. Lo lee `load_env()` del lado
+Python y, vía `frontend/next.config.ts`, también el front: ese fichero traduce
+`SUPABASE_URL` y `SUPABASE_ANON_KEY` a sus `NEXT_PUBLIC_*` por **lista blanca**. No hay
+`frontend/.env.local`, porque dos copias de lo mismo se desincronizan solas.
+
+La `service_role` jamás sale de ahí: se salta RLS, y todo lo que lleva `NEXT_PUBLIC_` se
+empaqueta en el JavaScript que descarga cualquiera. `next.config.ts` rompe el build si
+una variable pública lleva un nombre que huela a secreto.
 
 ---
 
@@ -108,9 +143,15 @@ calculados de las vistas SQL. Dos sitios que suman lo mismo acaban discrepando.
 **Medianas, no medias.** Un episodio que se derrumba a los 3 s arrastra la media del
 tiempo de ciclo y hace parecer rápido a un run que va mal.
 
-**Live nunca se queda en blanco.** Sin ejecución activa enseña la última terminada; si
-se pierde la conexión congela lo último recibido y lo dice. Quedarse en blanco delante
-del jurado es lo peor que puede hacer esa pantalla.
+**Live solo enseña lo que está pasando ahora, y nunca se queda en blanco.** Muestra el
+episodio `running`. Cuando acaba, se queda 10 s con su resultado («Terminado») para que se
+vea el desenlace y para que, si arranca otro de la misma ejecución, el cambio sea directo
+y no un parpadeo. Sin ninguno, lo dice con un mensaje («No hay ninguna ejecución en
+directo») y **no** lo rellena con lo último terminado, porque eso se leería como si
+estuviera ocurriendo. Si se pierde la conexión con un episodio en pantalla, congela lo
+último recibido y lo dice. Lo terminado se mira en Ejecuciones. Quedarse en blanco delante
+del jurado es lo peor que puede hacer esa pantalla; un mensaje claro no es quedarse en
+blanco.
 
 **El disco manda.** El `episodes.jsonl` que escribe la simulación es la fuente de
 verdad; Supabase es una réplica consultable. Un fallo de red avisa una vez y el
@@ -122,9 +163,12 @@ episodio sigue: la demo no puede depender del wifi de la sala.
 
 Cerrado. Añadir una nueva obliga a tocar **tres sitios**: `FAILURES` en
 `backend/theker_telemetry/schema.py`, el CHECK de `episodes.failure` en
-`backend/sql/002_design.sql`, y `FAILURE_TEXT` en `frontend/lib/ui.ts`. Saltarse el
+`backend/sql/001_schema.sql`, y `FAILURE_TEXT` en `frontend/lib/ui.ts`. Saltarse el
 segundo hace que el episodio se escriba en disco y la subida se caiga entera sin que
 nadie se entere hasta ver la interfaz vacía.
+
+Ya no hace falta acordarse: `backend/tests/test_vocabulario.py` compara los tres sitios
+y falla si uno se queda atrás.
 
 | enum | en pantalla |
 |---|---|
@@ -193,20 +237,39 @@ evolución en vez de borrón y cuenta nueva.
 
 - Python 3.11, type hints en las firmas públicas. TypeScript estricto en el front.
 - Unidades SI en el dato, milímetros y grados en la pantalla.
-- Nombres de código en inglés; comentarios y documentos en castellano.
+- **Colores solo como variables, y definidas en un único archivo:** `frontend/styles/colors.css`.
+  Ningún otro archivo (CSS, TS, TSX) lleva `#hex`, `rgb()`, `hsl()` ni un color con nombre;
+  consume `var(--…)`. Un color con transparencia es otra variable de ese archivo, calculada
+  con `color-mix` desde la base. `npm run lint` lo comprueba (`scripts/check-colors.mjs`).
+- Nombres de código en inglés; comentarios y documentos en castellano. Las tres
+  excepciones son `README.md`, `CONTRIBUTING.md` y `LICENSE`, que van en inglés porque
+  son lo que lee quien llega de fuera (§2).
 - Commits pequeños, con números cuando toquen comportamiento.
 - El diseño de referencia es `docs/design/observality-platform-design.html`: un bundle
-  autoextraíble con 11 tableros. Se abre en el navegador.
+  autoextraíble con 11 tableros. Se abre en el navegador. Manda en la **estructura y el
+  contenido** de cada pantalla; **no** en el aspecto: la identidad visual es la del logo de
+  STACKSPECT (blanco y negro, esquinas suaves, Plus Jakarta Sans y Geist Mono), con tema
+  claro y oscuro. El color con significado (estados, oracle, sembrado, causas de fallo) se
+  conserva en los dos temas. `npm run lint:contrast` garantiza el contraste AA.
 
 ---
 
 ## 9. Estado
 
-- **Backend: completo.** Esquema, SDK, backfill y sembrado, todos probados.
-- **Front:** tokens, librerías, componentes y la pantalla **Live** con Realtime y sus
-  tres estados (sin ejecución, fallo, conexión perdida). Compila.
-- **Pendiente:** las rutas `/runs`, `/runs/[id]` y `/runs/[id]/[seed]`. Son pegamento:
-  sus componentes ya están en `components/Runs.tsx` y `components/Episode.tsx`.
+- **Backend: completo y con red.** Esquema, SDK, backfill y sembrado, con 116 tests y
+  CI. `pytest backend -q` no toca la red; exportando `DATABASE_URL` a un Postgres
+  desechable se añaden los que levantan el esquema de verdad y comprueban el contrato
+  con el front (`backend/tests/test_contrato.py`). El contrato está escrito en `docs/API.md`.
+- **Episodio en vivo:** `RunLog` tiene `begin()` / `event()` / `pallet_state()` /
+  `end()` además de `episode()`. **La simulación tiene que llamarlas** o Live enseñará
+  el palé ya montado: `episode()` sube todo de golpe y entonces no hay fila `running`
+  ni `UPDATE` a los que Realtime pueda reaccionar.
+- **Front:** `/` (Live) y `/runs` (Ejecuciones), sobre TanStack Query, con Realtime y
+  los tres estados no felices. El tamaño del palé sale de `config.pallet_size_m` vía
+  `palletSize()`: **no** se dibuja siempre a 1200x800, porque el palé real puede ser una
+  maqueta a escala y entonces todas las cotas saldrían mal por el mismo factor.
+- **Detalle de ejecución:** `/runs/[id]` y `/runs/[id]/[seed]` ya están, sobre el mismo
+  `EpisodeDashboard` que Live: cambia de dónde salen los datos, no cómo se ven.
 
 Aviso de Next 16: `params` es una Promise (`const { id } = await params`) y existen los
 tipos globales `PageProps<'/runs/[id]'>`. Hay documentación offline en

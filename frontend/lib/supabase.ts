@@ -46,6 +46,7 @@ export type Run = {
   motion_speed: number;
   label: string | null;
   description: string | null;
+  config: Record<string, unknown>;
   episodes: number;
   successes: number;
   success_rate: number | null;
@@ -79,6 +80,7 @@ export type Episode = {
   oracle: boolean;
   synthetic: boolean;
   motion_speed: number;
+  config: Record<string, unknown>;
   cycle_time_s: number | null;
   final_stability_m: number | null;
   final_fill_ratio: number | null;
@@ -198,6 +200,19 @@ export async function fetchLatestEpisode(): Promise<Episode | null> {
 }
 
 /* ── comparabilidad ─────────────────────────────────────────────────────── */
+
+/** Una captura del simulador. `after_seq` casa con `pallet_states.after_seq`, así que
+ *  la foto y el punto de la traza de CoG son el mismo instante. */
+export type Snapshot = {
+  id: string;
+  episode_id: string;
+  after_seq: number;
+  view: "top" | "side" | "iso" | "camera";
+  url: string;
+  width: number | null;
+  height: number | null;
+  created_at: string;
+};
 
 export type Blocker = { field: string; a: string; b: string; why: string };
 

@@ -1,0 +1,21 @@
+.header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: var(--page-gap) var(--page-pad) 0;
+}
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--text-3);
+}
+.back:hover { color: var(--text); }
+.title { display: inline-flex; align-items: baseline; gap: 12px; min-width: 0; }
+.name { font-weight: 600; }
+.spacer { flex-grow: 1; }

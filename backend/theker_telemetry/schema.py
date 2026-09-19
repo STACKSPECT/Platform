@@ -34,7 +34,7 @@ FAILURES = frozenset(
 
 # Tareas que el repo sabe medir. La tarea es un campo, no una rama del código: así la
 # línea base de inducción sigue siendo comparable cuando entre el paletizado.
-TASKS = frozenset({"induction", "palletizing"})
+TASKS = frozenset({"induction", "palletizing", "paletizado-guionizado"})
 
 
 @dataclass

@@ -1,0 +1,21 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.neutral   { color: var(--text-3); }
+.ok        { color: var(--ok); background: var(--ok-fill); }
+.bad       { color: var(--bad); background: var(--bad-fill-soft); }
+.oracle    { color: var(--oracle); }
+.synthetic { color: var(--synthetic); }
+
+/* Los números que no son de verdad molestan a la vista a propósito. */
+.oracle    { background: repeating-linear-gradient(135deg, var(--oracle-stripe) 0 7px, transparent 7px 14px); }
+.synthetic { background: repeating-linear-gradient(135deg, var(--synthetic-stripe) 0 7px, transparent 7px 14px); }

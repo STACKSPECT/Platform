@@ -1,0 +1,14 @@
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.ok    { background: var(--ok);     --halo: var(--ok-halo); }
+.warn  { background: var(--warn);   --halo: var(--warn-halo); }
+.bad   { background: var(--bad);    --halo: var(--bad-halo); }
+.light { background: var(--text); --halo: var(--light-halo); }
+.muted { background: var(--text-4); --halo: var(--muted-halo); }
+
+.pulse { box-shadow: 0 0 0 3px var(--halo); }

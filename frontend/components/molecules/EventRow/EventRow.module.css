@@ -1,0 +1,20 @@
+.row {
+  list-style: none;
+  min-height: 42px;
+  padding: 0 12px;
+  margin: 0 12px;
+  border-radius: var(--radius-1);
+  font-size: 13px;
+  display: grid;
+  grid-template-columns: 72px 20px 110px minmax(90px, auto) minmax(0, 1fr);
+  align-items: center;
+  column-gap: 14px;
+}
+.highlighted { background: var(--row-hover); }
+.detail { text-align: right; }
+
+/* Estrecho: se suelta la columna de detalle bajo el objetivo en vez de recortarla. */
+@media (max-width: 720px) {
+  .row { grid-template-columns: 60px 20px 1fr; padding: 8px 16px; row-gap: 2px; }
+  .target, .detail { grid-column: 3; text-align: left; }
+}

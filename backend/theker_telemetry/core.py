@@ -18,9 +18,10 @@ import json
 import os
 import urllib.error
 import urllib.request
+from collections.abc import Iterable, Sequence
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Iterable, Sequence
+from typing import Any
 
 from .schema import EpisodeResult, RunWriter, git_sha
 
@@ -173,6 +174,37 @@ class Supabase:
         )
         self._send(request, table)
 
+    def upload_png(self, path: str, data: bytes, *,
+                   bucket: str = "snapshots") -> str:
+        """Sube un PNG a Storage y devuelve su URL pública.
+
+        Storage no es PostgREST: cuelga de /storage/v1 y el cuerpo son los bytes, no
+        JSON. `x-upsert` para que repetir un episodio pise la foto anterior en vez de
+        dar 409 y dejar la traza a medias.
+        """
+        destino = f"{bucket}/{path.lstrip('/')}"
+        cabeceras = {
+            "apikey": self.key,
+            "Authorization": f"Bearer {self.key}",
+            "Content-Type": "image/png",
+            "x-upsert": "true",
+        }
+        request = urllib.request.Request(
+            f"{self.base.removesuffix('/rest/v1')}/storage/v1/object/{destino}",
+            data=data, method="POST", headers=cabeceras)
+        self._send(request, bucket)
+        return f"{self.base.removesuffix('/rest/v1')}/storage/v1/object/public/{destino}"
+
+    def delete(self, table: str, match: dict) -> None:
+        """DELETE con filtro de igualdad. Lo usa el sembrado para limpiar lo suyo."""
+        query = "&".join(f"{k}=eq.{v}" for k, v in match.items())
+        request = urllib.request.Request(
+            f"{self.base}/{table}?{query}",
+            method="DELETE",
+            headers=self._headers("return=minimal"),
+        )
+        self._send(request, table)
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Conversión a filas
@@ -219,14 +251,21 @@ class RunLog:
     def __init__(self, repo: Path, *, task: str = "induction", level: int = 0,
                  oracle: bool = False, motion_speed: float = 1.0,
                  tag: str | None = None, label: str | None = None,
-                 n_episodes: int = 0, remote: bool = True):
+                 n_episodes: int = 0, config: dict | None = None,
+                 remote: bool = True):
         self.writer = RunWriter(repo, tag=tag)
         self.directory = self.writer.directory
         self.path = self.writer.path
 
         self.client = Supabase.from_env(repo) if remote else None
         self.run_id: str | None = None
+        # El episodio abierto por `begin()`, si se está usando el modo en vivo.
+        self.episode_id: str | None = None
         self._warned = False
+
+        # La identidad del run, para no repetirla en cada `begin()`.
+        self.task = task
+        self.level = int(level)
 
         if self.client is None:
             return
@@ -238,9 +277,13 @@ class RunLog:
             "motion_speed": float(motion_speed),
             "label": label,
             "n_episodes": int(n_episodes),
+            # Todo lo que describe el montaje y no cabe en una columna. Lo primero
+            # que necesita: `pallet_size_m`. El palé real es una maqueta a escala
+            # —la pinza del Panda abre 80 mm y un europeo es inagarrable— y sin esto
+            # la pantalla lo dibuja a 1200x800 y TODAS las cotas salen mal.
+            "config": _json_safe(config or {}),
         }], returning=True))
-        if rows:
-            self.run_id = rows[0]["id"]
+        self.run_id = self._id_of(rows)
 
     # ── uso normal ───────────────────────────────────────────────────────────
 
@@ -255,9 +298,9 @@ class RunLog:
 
         rows = self._try("episodes", lambda: self.client.insert(
             "episodes", [episode_row(result, self.run_id)], returning=True))
-        if not rows:
+        episode_id = self._id_of(rows)
+        if not episode_id:
             return
-        episode_id = rows[0]["id"]
 
         for table, items in (("placements", placements),
                              ("pallet_states", pallet_states),
@@ -265,6 +308,94 @@ class RunLog:
             batch = [{**item, "episode_id": episode_id} for item in items]
             if batch:
                 self._try(table, lambda t=table, b=batch: self.client.insert(t, b))
+
+    # ── episodio en vivo ─────────────────────────────────────────────────────
+    #
+    # `episode()` sube el episodio YA terminado con todas sus filas hijas de golpe.
+    # Para un benchmark está bien, pero entonces la pantalla Live no tiene nada a lo
+    # que suscribirse: nunca existe una fila `running` ni llega un UPDATE de
+    # `episodes`, así que el jurado ve el palé ya hecho en vez de montándose
+    # (API.md §4). Con `begin()` / `event()` / `end()` el episodio se abre primero y
+    # las filas hijas van llegando, que es justo lo que Realtime reparte.
+
+    def begin(self, seed: int, *, n_objects: int = 0,
+              task: str | None = None, level: int | None = None) -> None:
+        """Abre un episodio en curso. A partir de aquí `event()`, `pallet_state()` y
+        `placement()` van soltando filas según ocurren."""
+        self.episode_id = None
+        if not self.run_id:
+            return
+        rows = self._try("episodes", lambda: self.client.insert("episodes", [{
+            "run_id": self.run_id,
+            "seed": int(seed),
+            "task": task or self.task,
+            "level": self.level if level is None else int(level),
+            "status": "running",
+            "n_objects": int(n_objects),
+            "n_placed": 0,
+        }], returning=True))
+        self.episode_id = self._id_of(rows)
+
+    def event(self, **row: Any) -> None:
+        self._push("events", row)
+
+    def pallet_state(self, **row: Any) -> None:
+        self._push("pallet_states", row)
+
+    def placement(self, **row: Any) -> None:
+        self._push("placements", row)
+
+    def snapshot(self, **row: Any) -> None:
+        """Una foto del palé. `png=<bytes>` la sube a Storage y rellena `url` sola."""
+        png = row.pop("png", None)
+        if png is not None and self.client and self.episode_id:
+            nombre = (f"{self.episode_id}/{row.get('after_seq', 0):03d}"
+                      f"-{row.get('view', 'top')}.png")
+            url = self._try("snapshots", lambda: self.client.upload_png(nombre, png))
+            if not url:
+                return          # sin imagen no hay fila que apunte a ninguna parte
+            row["url"] = url
+        self._push("snapshots", row)
+
+    def end(self, result: EpisodeResult) -> None:
+        """Cierra el episodio abierto con `begin()`. El disco primero, siempre.
+
+        El PATCH es además el UPDATE de `episodes` al que Live está suscrita: es lo que
+        le dice a la pantalla que este episodio ha terminado y cómo."""
+        self.writer.write(result)
+        episode_id, self.episode_id = self.episode_id, None
+        if not episode_id or not self.run_id:
+            return
+
+        # Solo lo que cambia al cerrar. seed, task, level y n_objects se fijaron en
+        # `begin()` y no se reescriben: mandarlos otra vez ensuciaba el PATCH y
+        # contradecía lo que documenta API.md §3.
+        fila = episode_row(result, self.run_id)
+        row = {k: fila[k] for k in
+               ("status", "duration_s", "n_placed", "score", "failure", "metrics")}
+        row["ended_at"] = "now()"
+        self._try("episodes", lambda: self.client.patch(
+            "episodes", {"id": episode_id}, row))
+
+    @staticmethod
+    def _id_of(rows: Any) -> str | None:
+        """El id de la fila recién creada, o None si PostgREST devolvió otra cosa.
+
+        Va aparte porque la lectura ocurre FUERA de `_try` —ya ha vuelto de la red— y
+        un `rows[0]["id"]` a pelo se llevaría por delante el episodio con un KeyError
+        justo después de haberlo blindado."""
+        if not rows or not isinstance(rows[0], dict):
+            return None
+        return rows[0].get("id")
+
+    def _push(self, table: str, row: dict) -> None:
+        """Una fila hija del episodio abierto. Sin `begin()` no hay dónde colgarla."""
+        if not self.episode_id:
+            return
+        self._try(table, lambda: self.client.insert(
+            table, [{**row, "episode_id": self.episode_id}]))
+
+    # ── cierre del run ───────────────────────────────────────────────────────
 
     def close(self) -> None:
         """Cierra el run. Sin esto `ended_at` queda a null y la interfaz no distingue
@@ -292,7 +423,13 @@ class RunLog:
             return None
         try:
             return call()
-        except RuntimeError as err:
+        # RuntimeError es lo que lanza el cliente a propósito. Los otros dos son el
+        # resto de formas en que una respuesta rara tumba la subida: un 200 con cuerpo
+        # que no es JSON revienta en `json.loads` (ValueError, del que hereda
+        # JSONDecodeError), y una fila devuelta sin `id` revienta al leerla
+        # (LookupError). Que el remoto falle nunca puede llevarse por delante el
+        # episodio: para eso existe este blindaje.
+        except (RuntimeError, ValueError, LookupError) as err:
             if not self._warned:
                 print(f"  aviso: Supabase no responde ({err}). "
                       f"Se sigue escribiendo en {self.path}")

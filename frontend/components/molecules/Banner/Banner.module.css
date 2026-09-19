@@ -1,0 +1,13 @@
+.banner {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 12px var(--page-pad) 0;
+  padding: 12px 20px;
+  border-radius: var(--radius-2);
+}
+.warn { background: var(--warn-banner); border: 1px solid var(--warn); }
+.info { background: var(--row-alt); border: 1px solid var(--border); }
+.spacer { flex-grow: 1; }

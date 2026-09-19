@@ -1,0 +1,27 @@
+.wrap { position: relative; display: inline-flex; }
+
+.select {
+  appearance: none;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-1);
+  padding: 9px 36px 9px 14px;
+  min-height: 40px;
+  cursor: pointer;
+}
+.select:hover { background: var(--row-hover); }
+/* Los <option> los pinta el sistema: se les da fondo propio para que no salgan de otro tema. */
+.select option { background: var(--surface); color: var(--text); }
+
+.chevron {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-3);
+  pointer-events: none;
+  display: inline-flex;
+}

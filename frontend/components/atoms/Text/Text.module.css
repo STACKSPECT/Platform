@@ -1,0 +1,38 @@
+.text { margin: 0; }
+
+/* Etiquetas y cabeceras: la misma sans, en minúscula normal y algo más gruesa. Antes iban
+   en versal espaciada; se leía «sala de control», no «herramienta amable». */
+.label {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.body    { font-size: 13px; }
+.caption { font-size: 12px; }
+
+/* Toda magnitud física: monoespaciada y de cifras fijas para que no bailen en vivo. */
+.num, .mono {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.num  { font-size: 13px; }
+.mono { font-size: 12.5px; }
+
+.default { color: var(--text); }
+.muted   { color: var(--text-3); }
+.faint   { color: var(--text-4); }
+.ok      { color: var(--ok); }
+.warn    { color: var(--warn); }
+.bad     { color: var(--bad); }
+.select  { color: var(--select); }
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* Van después de las variantes para ganarles con la misma especificidad. */
+.md { font-size: 14px; }
+.lg { font-size: 15px; }

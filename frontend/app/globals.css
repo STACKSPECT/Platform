@@ -1,55 +1,23 @@
 /*
- * Sistema visual de la plataforma. Los valores salen literales del tablero
- * "Lenguaje visual" de docs/design/, no son aproximaciones.
+ * Estilos globales de la plataforma. Los colores NO se definen aquí: viven todos en
+ * styles/colors.css, y este archivo (como cualquier otro) solo los consume con `var(--…)`.
  *
- * Sala de control industrial: fondo oscuro, sin adornos, sin degradados. La interfaz
- * se compromete con un solo tema a propósito —es un panel de planta, no un documento—
- * y por eso pinta todos sus colores explícitamente en vez de heredar ninguno.
+ * Lenguaje visual: limpio y amable. Superficies blancas (o casi negras) con esquinas
+ * suaves, mucho aire, poco borde y ninguna sombra que grite. Texto en una sans redondeada;
+ * magnitudes en una mono suave, con cifras de ancho fijo para que no bailen en vivo.
  */
 
 :root {
-  /* Neutros */
-  --bg:          #0F1214;
-  --surface:     #161A1E;
-  --topbar:      #141A1E;
-  --border:      #232B31;
-  --border-soft: #1F272C;
-  --border-hard: #3E4B56;
-  --row-alt:     #171C21;
-  --row-hover:   #1A2026;
+  /* Radios: tres tamaños y nada más. Los controles pequeños, las tarjetas y lo grande. */
+  --radius-1: 8px;
+  --radius-2: 12px;
+  --radius-3: 16px;
+  --radius-pill: 999px;
 
-  --text:    #E6EAED;
-  --text-2:  #9FAAB2;
-  --text-3:  #8B979F;
-  --text-4:  #6E7A82;
-  --text-5:  #46525A;
-
-  /* Azul acero: SOLO selección e interacción. Nunca significa estado. */
-  --select: #5B9DD9;
-  --link:   #6FA8D8;
-
-  /* Semántica de color: tres significados y ninguno más. */
-  --ok:   #2FBF71;
-  --warn: #E8A93A;
-  --bad:  #F2544B;
-
-  /* Números que no son de verdad. Molestan a la vista a propósito. */
-  --oracle:    #E5399B;
-  --synthetic: #B77BF3;
-
-  /* Una identidad de color por causa de fallo, constante en toda la aplicación.
-     Se reconocen de un vistazo al pasar de una pantalla a otra. */
-  --f-no_detection:       #7A8B99;
-  --f-grasp_slip:         #C9A227;
-  --f-ik_unreachable:     #5B9DD9;
-  --f-wrong_placement:    #8C7AE6;
-  --f-collision:          #B5485E;
-  --f-stack_collapse:     #FF7A45;
-  --f-timeout:            #4A5A66;
-  --f-overhang_violation: #00A9A5;
-  --f-place_inaccurate:   #A0785A;
-
-  color-scheme: dark;
+  /* Espaciado de página: el aire que rodea las pantallas. */
+  --page-gap: 20px;
+  --page-pad: 32px;
+  --topbar-h: 64px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -60,119 +28,58 @@ body {
   min-height: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-plex-sans), system-ui, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 14px;
-  line-height: 1.4;
+  line-height: 1.45;
   -webkit-font-smoothing: antialiased;
 }
 
-a { color: var(--link); text-decoration: none; }
-a:hover { color: #9CC6E8; }
+/* Un cambio de tema se nota, pero no deslumbra: los colores se funden. */
+body, header, main, section, table, td, th, select, button, label {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+a {
+  color: var(--link);
+  text-decoration: underline;
+  text-decoration-color: var(--border-hard);
+  text-underline-offset: 3px;
+}
+a:hover { color: var(--link-hover); text-decoration-color: currentColor; }
 
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
 
-:focus-visible { outline: 2px solid var(--select); outline-offset: 1px; }
+:focus-visible { outline: 2px solid var(--select); outline-offset: 2px; border-radius: 4px; }
 
-/* ── piezas compartidas ─────────────────────────────────────────────────── */
+/* ── piezas heredadas ────────────────────────────────────────────────────
+   Las usan Episode.tsx y Runs.tsx, que esperan a las rutas de detalle. Los componentes
+   nuevos no las necesitan: llevan su propio módulo. */
 
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
+  border-radius: var(--radius-3);
+  box-shadow: var(--elev-1);
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
-/* Etiquetas y cabeceras: condensada, versal, muy espaciada. */
 .label {
-  font-family: var(--font-plex-condensed), var(--font-plex-sans), sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
   color: var(--text-3);
 }
 
-.mono { font-family: var(--font-plex-mono), ui-monospace, monospace; }
+.mono { font-family: var(--font-mono), ui-monospace, monospace; }
 
-/* Toda magnitud física. Monoespaciada y con cifras de ancho fijo para que al
-   refrescarse en vivo las columnas no bailen. */
 .num {
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-family: var(--font-mono), ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
 }
 
 .unit { color: var(--text-3); }
-
-/* Franja diagonal de los datos que no son medidos. Se usa igual para oracle y para
-   sembrado: en los dos casos el mensaje es "esto no es un número de verdad". */
-.striped {
-  background: repeating-linear-gradient(
-    135deg, rgba(229, 57, 155, 0.16) 0 7px, transparent 7px 14px);
-}
-.striped-synthetic {
-  background: repeating-linear-gradient(
-    135deg, rgba(183, 123, 243, 0.16) 0 7px, transparent 7px 14px);
-}
-
-/* ── Live ───────────────────────────────────────────────────────────────── */
-
-/* El tablero mide 1440x900: 600 px de escena a la izquierda y el resto para estado.
-   Aquí la izquierda es fija y la derecha fluye, para que en pantallas mayores crezca
-   el feed de eventos y no el dibujo del palé, que ya está a escala. */
-.live {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 48px);
-  min-height: 0;
-}
-.live__body {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  gap: 12px;
-  padding: 12px;
-}
-.live__stage {
-  width: 600px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-height: 0;
-}
-.live__side {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-height: 0;
-}
-.live__kpis {
-  flex-shrink: 0;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-/* Portátil estrecho: la escena deja de ser fija para no comerse el estado. */
-@media (max-width: 1180px) {
-  .live__stage { width: 46%; }
-}
-
-/* La demo puede acabar enseñándose en un móvil. Se apila, se sueltan las alturas
-   fijas y los indicadores pasan a una sola columna. */
-@media (max-width: 860px) {
-  .live { height: auto; }
-  .live__body { flex-direction: column; }
-  .live__stage { width: 100%; }
-  .live__stage .card { min-height: 280px; }
-}
-@media (max-width: 460px) {
-  .live__kpis { grid-template-columns: 1fr; }
-  .live__body { padding: 8px; gap: 8px; }
-}
 
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }

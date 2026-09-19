@@ -1,0 +1,571 @@
+"""El SDK contra Supabase, sin tocar la red.
+
+Lo que de verdad se protege aquí es la promesa dura de AGENTS.md §4: el disco manda.
+Un fallo de red avisa UNA vez y el episodio sigue. Si esto se rompe, un benchmark de
+cincuenta episodios se cae por el wifi de la sala y no queda ni el jsonl.
+"""
+
+import io
+import json
+import urllib.error
+import urllib.request
+
+import pytest
+
+from theker_telemetry import core
+from theker_telemetry.core import RunLog, Supabase, _json_safe, episode_row, load_env
+from theker_telemetry.schema import EpisodeResult
+
+
+def episodio(**cambios) -> EpisodeResult:
+    base = dict(
+        seed=7, level=2, n_objects=10, n_placed=7, n_misrouted=0, success=False,
+        duration_s=42.0, failure="stack_collapse", oracle=False, git_sha="abc1234",
+        task="palletizing", metrics={"cog_offset_xy": 0.031, "score": 0.7},
+    )
+    return EpisodeResult(**{**base, **cambios})
+
+
+class ClienteFalso:
+    """Un Supabase de mentira que apunta lo que le piden y falla cuando se le dice."""
+
+    def __init__(self, falla_en=()):
+        self.llamadas = []
+        self.falla_en = set(falla_en)
+        self._n = 0
+
+    def insert(self, table, rows, *, returning=False):
+        self.llamadas.append(("insert", table, [dict(r) for r in rows]))
+        if table in self.falla_en:
+            raise RuntimeError(f"{table}: HTTP 503 se cayó")
+        if not returning:
+            return []
+        self._n += 1
+        return [{"id": f"{table}-{self._n}"}]
+
+    def patch(self, table, match, data):
+        self.llamadas.append(("patch", table, dict(match), dict(data)))
+        if table in self.falla_en:
+            raise RuntimeError(f"{table}: HTTP 503 se cayó")
+
+    def tablas(self, verbo="insert"):
+        return [c[1] for c in self.llamadas if c[0] == verbo]
+
+
+def log_conectado(tmp_path, cliente) -> RunLog:
+    """Un RunLog con el remoto ya abierto, sin pasar por `Supabase.from_env`."""
+    log = RunLog(tmp_path, task="palletizing", level=2, remote=False)
+    log.client = cliente
+    log.run_id = "run-1"
+    return log
+
+
+# ── episode_row: lo que era demo(), como test ────────────────────────────────
+
+def test_episode_row_traduce_el_episodio_a_fila():
+    row = episode_row(episodio(), "11111111-1111-1111-1111-111111111111")
+
+    assert json.loads(json.dumps(row))["status"] == "failure"
+    assert row["failure"] == "stack_collapse"
+    assert row["score"] == 0.7
+    assert row["metrics"] == {"cog_offset_xy": 0.031, "score": 0.7, "n_misrouted": 0}
+
+
+def test_episode_row_no_repite_git_sha_ni_oracle():
+    """Viven en `runs`; repetirlos por episodio es invitarlos a desincronizarse, y las
+    vistas ya los recuperan por el join (API.md §3)."""
+    row = episode_row(episodio(), "run-1")
+    assert "git_sha" not in row
+    assert "oracle" not in row
+
+
+def test_episode_row_marca_exito():
+    assert episode_row(episodio(success=True, failure=None), "r")["status"] == "success"
+
+
+def test_episode_row_no_pisa_un_n_misrouted_explicito():
+    row = episode_row(episodio(n_misrouted=3, metrics={"n_misrouted": 9}), "r")
+    assert row["metrics"]["n_misrouted"] == 9
+
+
+def test_demo_sigue_funcionando_sin_red(capsys):
+    """Se ejecuta desde el repo de la simulación sin pytest instalado."""
+    core.demo()
+    assert "ok" in capsys.readouterr().out
+
+
+# ── _json_safe: numpy sin importar numpy ─────────────────────────────────────
+
+class EscalarFalso:
+    """Se comporta como un `np.float32`: tiene `.item()` y `ndim == 0`."""
+    ndim = 0
+
+    def __init__(self, valor):
+        self._valor = valor
+
+    def item(self):
+        return self._valor
+
+
+class ArrayFalso:
+    """Se comporta como un `np.ndarray`: tiene `.tolist()`."""
+
+    def __init__(self, valor):
+        self._valor = valor
+
+    def tolist(self):
+        return self._valor
+
+
+def test_json_safe_desactiva_escalares_y_arrays():
+    crudo = {"a": EscalarFalso(0.5), "b": ArrayFalso([EscalarFalso(1), 2])}
+    assert _json_safe(crudo) == {"a": 0.5, "b": [1, 2]}
+
+
+def test_json_safe_recorre_estructuras_anidadas():
+    crudo = {"x": [{"y": (EscalarFalso(3),)}]}
+    assert _json_safe(crudo) == {"x": [{"y": [3]}]}
+
+
+def test_json_safe_deja_pasar_lo_que_ya_es_json():
+    crudo = {"i": 1, "f": 1.5, "s": "t", "b": True, "n": None}
+    assert _json_safe(crudo) == crudo
+
+
+def test_json_safe_convierte_a_texto_lo_que_no_sabe_serializar():
+    class Raro:
+        def __repr__(self):
+            return "<raro>"
+
+    assert _json_safe({"k": Raro()}) == {"k": "<raro>"}
+
+
+def test_json_safe_produce_algo_que_json_dumps_acepta():
+    json.dumps(_json_safe({"a": EscalarFalso(0.5), "b": ArrayFalso([1.0])}))
+
+
+# ── load_env ─────────────────────────────────────────────────────────────────
+
+def test_load_env_lee_el_env_del_repo(tmp_path, monkeypatch):
+    monkeypatch.setattr(core.os, "environ", {})
+    (tmp_path / ".env").write_text("SUPABASE_URL=https://a.supabase.co\n")
+
+    load_env(tmp_path)
+    assert core.os.environ["SUPABASE_URL"] == "https://a.supabase.co"
+
+
+def test_load_env_mira_la_carpeta_padre(tmp_path, monkeypatch):
+    """Las credenciales son del hackathon y se comparten entre los dos repos."""
+    monkeypatch.setattr(core.os, "environ", {})
+    repo = tmp_path / "platform"
+    repo.mkdir()
+    (tmp_path / ".env").write_text("SUPABASE_URL=https://padre.supabase.co\n")
+
+    load_env(repo)
+    assert core.os.environ["SUPABASE_URL"] == "https://padre.supabase.co"
+
+
+def test_el_env_del_repo_gana_al_del_padre(tmp_path, monkeypatch):
+    monkeypatch.setattr(core.os, "environ", {})
+    repo = tmp_path / "platform"
+    repo.mkdir()
+    (repo / ".env").write_text("SUPABASE_URL=https://propio.supabase.co\n")
+    (tmp_path / ".env").write_text("SUPABASE_URL=https://padre.supabase.co\n")
+
+    load_env(repo)
+    assert core.os.environ["SUPABASE_URL"] == "https://propio.supabase.co"
+
+
+def test_lo_ya_exportado_gana_al_fichero(tmp_path, monkeypatch):
+    """Para que un `export` puntual apunte a otro proyecto sin editar nada."""
+    monkeypatch.setattr(core.os, "environ", {"SUPABASE_URL": "https://mandado"})
+    (tmp_path / ".env").write_text("SUPABASE_URL=https://fichero\n")
+
+    load_env(tmp_path)
+    assert core.os.environ["SUPABASE_URL"] == "https://mandado"
+
+
+def test_load_env_ignora_comentarios_y_basura(tmp_path, monkeypatch):
+    monkeypatch.setattr(core.os, "environ", {})
+    (tmp_path / ".env").write_text(
+        "\n# un comentario\nsin_igual\n  SUPABASE_URL = 'https://a.co'  \n")
+
+    load_env(tmp_path)
+    assert core.os.environ == {"SUPABASE_URL": "https://a.co"}
+
+
+def test_from_env_sin_credenciales_no_es_un_error(tmp_path, monkeypatch):
+    """Correr sin Supabase es el modo por defecto."""
+    monkeypatch.setattr(core.os, "environ", {})
+    assert Supabase.from_env(tmp_path) is None
+
+
+def test_from_env_exige_las_dos_variables(tmp_path, monkeypatch):
+    monkeypatch.setattr(core.os, "environ", {"SUPABASE_URL": "https://a.co"})
+    assert Supabase.from_env(tmp_path) is None
+
+
+# ── Supabase._send: traducir los errores de PostgREST ────────────────────────
+
+def test_send_mete_el_cuerpo_de_postgrest_en_el_error(monkeypatch):
+    """Sin leer el cuerpo, un 400 por esquema y un 401 por clave son indistinguibles."""
+    cuerpo = b'{"code":"23514","message":"viola el CHECK de failure"}'
+
+    def urlopen_falso(request, timeout=None):
+        raise urllib.error.HTTPError(
+            "http://x", 400, "Bad Request", {}, io.BytesIO(cuerpo))
+
+    monkeypatch.setattr(urllib.request, "urlopen", urlopen_falso)
+    cliente = Supabase("https://x.supabase.co", "clave")
+
+    with pytest.raises(RuntimeError, match="HTTP 400") as err:
+        cliente.insert("episodes", [{"seed": 1}])
+    assert "23514" in str(err.value)
+
+
+def test_send_traduce_un_corte_de_red(monkeypatch):
+    def urlopen_falso(request, timeout=None):
+        raise urllib.error.URLError("sin ruta al host")
+
+    monkeypatch.setattr(urllib.request, "urlopen", urlopen_falso)
+    cliente = Supabase("https://x.supabase.co", "clave")
+
+    with pytest.raises(RuntimeError, match="sin ruta al host"):
+        cliente.get("runs")
+
+
+def test_insert_vacio_no_llama_a_la_red(monkeypatch):
+    def urlopen_falso(request, timeout=None):
+        raise AssertionError("no debería haber salido a la red")
+
+    monkeypatch.setattr(urllib.request, "urlopen", urlopen_falso)
+    assert Supabase("https://x.supabase.co", "clave").insert("events", []) == []
+
+
+# ── RunLog: el disco manda ───────────────────────────────────────────────────
+
+def test_el_episodio_se_escribe_en_disco_aunque_la_subida_falle(tmp_path):
+    log = log_conectado(tmp_path, ClienteFalso(falla_en={"episodes"}))
+
+    log.episode(episodio())          # no propaga
+
+    lineas = log.path.read_text(encoding="utf-8").splitlines()
+    assert len(lineas) == 1
+    assert json.loads(lineas[0])["seed"] == 7
+
+
+def test_tras_un_fallo_se_apaga_el_remoto_y_se_sigue_escribiendo(tmp_path):
+    cliente = ClienteFalso(falla_en={"episodes"})
+    log = log_conectado(tmp_path, cliente)
+
+    for seed in range(5):
+        log.episode(episodio(seed=seed))
+
+    assert log.client is None and log.run_id is None
+    # Un solo intento: los cuatro episodios siguientes ni tocan la red.
+    assert cliente.tablas() == ["episodes"]
+    assert len(log.path.read_text(encoding="utf-8").splitlines()) == 5
+
+
+def test_solo_avisa_una_vez(tmp_path, capsys):
+    """Cincuenta episodios serían cincuenta timeouts, y basta con enterarse una vez."""
+    log = log_conectado(tmp_path, ClienteFalso(falla_en={"episodes"}))
+
+    for seed in range(5):
+        log.episode(episodio(seed=seed))
+
+    salida = capsys.readouterr().out
+    assert salida.count("aviso") == 1
+    assert str(log.path) in salida
+
+
+def test_un_episodio_correcto_sube_sus_filas_hijas(tmp_path):
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+
+    log.episode(
+        episodio(),
+        placements=[{"seq": 0, "package_id": "pkg_00"}],
+        pallet_states=[{"after_seq": 0, "mass_kg": 1.2}],
+        events=[{"ts": 0.1, "seq": 0, "kind": "place"}],
+    )
+
+    assert cliente.tablas() == ["episodes", "placements", "pallet_states", "events"]
+    # Cada hija lleva el episode_id que devolvió la inserción del episodio.
+    for _, tabla, filas in cliente.llamadas[1:]:
+        assert all(f["episode_id"] == "episodes-1" for f in filas), tabla
+
+
+def test_sin_run_id_no_se_intenta_subir_nada(tmp_path):
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+    log.run_id = None
+
+    log.episode(episodio())
+
+    assert cliente.llamadas == []
+    assert len(log.path.read_text(encoding="utf-8").splitlines()) == 1
+
+
+def test_una_respuesta_sin_id_no_tumba_el_episodio(tmp_path):
+    """PostgREST puede contestar 200 con algo que no trae `id`. Leerlo lanzaría
+    KeyError, que no es un RuntimeError y se escaparía del blindaje."""
+    class SinId(ClienteFalso):
+        def insert(self, table, rows, *, returning=False):
+            super().insert(table, rows, returning=returning)
+            return [{"otra_cosa": 1}] if returning else []
+
+    log = log_conectado(tmp_path, SinId())
+
+    log.episode(episodio())          # no propaga
+
+    assert len(log.path.read_text(encoding="utf-8").splitlines()) == 1
+    # No se intentan colgar filas hijas de un episodio que no se sabe cuál es.
+    assert cliente_tablas(log) == ["episodes"]
+
+
+def cliente_tablas(log) -> list[str]:
+    return log.client.tablas() if log.client else []
+
+
+def test_un_cuerpo_que_no_es_json_no_tumba_el_episodio(tmp_path):
+    """Un 200 con HTML de un proxy revienta en json.loads, que lanza ValueError."""
+    class Basura(ClienteFalso):
+        def insert(self, table, rows, *, returning=False):
+            super().insert(table, rows, returning=returning)
+            raise json.JSONDecodeError("Expecting value", "<html>", 0)
+
+    log = log_conectado(tmp_path, Basura())
+
+    log.episode(episodio())
+
+    assert len(log.path.read_text(encoding="utf-8").splitlines()) == 1
+    assert log.client is None
+
+
+# ── el episodio en vivo ──────────────────────────────────────────────────────
+
+def test_begin_abre_el_episodio_en_curso(tmp_path):
+    """Sin una fila `running` no hay nada a lo que Live pueda suscribirse."""
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+
+    log.begin(seed=37, n_objects=10)
+
+    (_, tabla, filas), = cliente.llamadas
+    assert tabla == "episodes"
+    assert filas[0]["status"] == "running"
+    assert filas[0]["seed"] == 37
+    assert filas[0]["n_objects"] == 10
+    assert filas[0]["n_placed"] == 0
+    assert log.episode_id == "episodes-1"
+
+
+def test_begin_hereda_la_tarea_y_el_nivel_del_run(tmp_path):
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+
+    log.begin(seed=1)
+
+    assert cliente.llamadas[0][2][0]["task"] == "palletizing"
+    assert cliente.llamadas[0][2][0]["level"] == 2
+
+
+def test_las_filas_hijas_van_colgando_del_episodio_abierto(tmp_path):
+    """Es lo que Realtime reparte y lo que hace que el palé se monte a la vista."""
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+    log.begin(seed=1, n_objects=2)
+
+    log.event(ts=0.4, seq=0, kind="perceive")
+    log.pallet_state(after_seq=0, mass_kg=1.2, cog_x=0.0, cog_y=0.0, cog_z=0.1)
+    log.placement(seq=0, package_id="pkg_00", package_type="caja baja")
+
+    assert cliente.tablas() == ["episodes", "events", "pallet_states", "placements"]
+    for _, tabla, filas in cliente.llamadas[1:]:
+        assert filas[0]["episode_id"] == "episodes-1", tabla
+
+
+def test_end_cierra_el_episodio_con_un_patch(tmp_path):
+    """El PATCH es el UPDATE de `episodes` al que Live está suscrita."""
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+    log.begin(seed=7, n_objects=10)
+
+    log.end(episodio())
+
+    verbo, tabla, match, datos = cliente.llamadas[-1]
+    assert (verbo, tabla) == ("patch", "episodes")
+    assert match == {"id": "episodes-1"}
+    assert datos["status"] == "failure"
+    assert datos["failure"] == "stack_collapse"
+    assert datos["n_placed"] == 7
+    assert datos["ended_at"] == "now()"
+    # El run no se toca: el episodio no sabe a qué run pertenece más que al abrirse.
+    assert "run_id" not in datos
+
+
+def test_end_escribe_en_disco_antes_que_nada(tmp_path):
+    """La promesa dura también vale para el camino en vivo."""
+    cliente = ClienteFalso(falla_en={"episodes"})
+    log = log_conectado(tmp_path, cliente)
+    log.begin(seed=7)
+
+    log.end(episodio())
+
+    assert len(log.path.read_text(encoding="utf-8").splitlines()) == 1
+
+
+def test_end_cierra_aunque_begin_no_llegara_a_abrir(tmp_path):
+    """Sin remoto, `begin()`/`end()` tienen que seguir escribiendo el jsonl."""
+    log = RunLog(tmp_path, task="palletizing", level=2, remote=False)
+
+    log.begin(seed=7)
+    log.end(episodio())
+
+    assert log.episode_id is None
+    assert len(log.path.read_text(encoding="utf-8").splitlines()) == 1
+
+
+def test_sin_begin_las_filas_hijas_no_van_a_ninguna_parte(tmp_path):
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+
+    log.event(ts=0.1, seq=0, kind="place")
+
+    assert cliente.llamadas == []
+
+
+def test_un_episodio_no_se_cierra_dos_veces(tmp_path):
+    """El segundo `end()` sin `begin()` de por medio escribe en disco pero no vuelve a
+    tocar la fila del anterior, que ya estaba cerrada."""
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+    log.begin(seed=7)
+
+    log.end(episodio())
+    log.end(episodio(seed=8))
+
+    assert len([c for c in cliente.llamadas if c[0] == "patch"]) == 1
+    assert len(log.path.read_text(encoding="utf-8").splitlines()) == 2
+
+
+def test_dos_episodios_seguidos_no_se_mezclan(tmp_path):
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+
+    log.begin(seed=1)
+    log.event(ts=0.1, seq=0, kind="place")
+    log.end(episodio(seed=1))
+
+    log.begin(seed=2)
+    log.event(ts=0.1, seq=0, kind="place")
+    log.end(episodio(seed=2))
+
+    eventos = [c for c in cliente.llamadas if c[1] == "events"]
+    assert [c[2][0]["episode_id"] for c in eventos] == ["episodes-1", "episodes-2"]
+
+
+def test_close_cierra_el_run(tmp_path):
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+
+    log.close()
+
+    assert cliente.llamadas == [
+        ("patch", "runs", {"id": "run-1"}, {"ended_at": "now()"})]
+
+
+def test_close_sin_remoto_no_hace_nada(tmp_path):
+    log = RunLog(tmp_path, remote=False)
+    log.close()          # no revienta
+    assert log.path_in_ui is None
+
+
+def test_path_in_ui_apunta_al_run(tmp_path):
+    log = log_conectado(tmp_path, ClienteFalso())
+    assert log.path_in_ui == "/runs/run-1"
+
+
+# ── config del run y fotos ───────────────────────────────────────────────────
+
+def test_el_run_lleva_su_config(tmp_path, monkeypatch):
+    """Sin `pallet_size_m` la pantalla dibuja el palé a 1200x800, y este es una maqueta
+    a escala: TODAS las cotas saldrían mal por el mismo factor."""
+    cliente = ClienteFalso()
+    monkeypatch.setattr(core.Supabase, "from_env", classmethod(lambda cls, r: cliente))
+
+    core.RunLog(tmp_path, task="palletizing", level=2,
+                config={"pallet_size_m": [0.21, 0.14], "pallet_scale": 5.7})
+
+    fila = cliente.llamadas[0][2][0]
+    assert fila["config"] == {"pallet_size_m": [0.21, 0.14], "pallet_scale": 5.7}
+
+
+def test_sin_config_se_manda_un_objeto_vacio(tmp_path, monkeypatch):
+    """Nunca null: la columna es `not null default '{}'`."""
+    cliente = ClienteFalso()
+    monkeypatch.setattr(core.Supabase, "from_env", classmethod(lambda cls, r: cliente))
+
+    core.RunLog(tmp_path, task="palletizing", level=2)
+
+    assert cliente.llamadas[0][2][0]["config"] == {}
+
+
+def test_snapshot_sube_el_png_y_guarda_la_url(tmp_path):
+    class ConStorage(ClienteFalso):
+        def upload_png(self, path, data, *, bucket="snapshots"):
+            self.llamadas.append(("upload", bucket, path, len(data)))
+            return f"https://x.supabase.co/storage/v1/object/public/{bucket}/{path}"
+
+    cliente = ConStorage()
+    log = log_conectado(tmp_path, cliente)
+    log.begin(seed=1, n_objects=2)
+
+    log.snapshot(after_seq=0, view="top", png=b"\x89PNG-de-mentira", width=640, height=480)
+
+    subida = [c for c in cliente.llamadas if c[0] == "upload"][0]
+    assert subida[1] == "snapshots"
+    assert subida[2] == "episodes-1/000-top.png"
+
+    fila = [c for c in cliente.llamadas if c[1] == "snapshots" and c[0] == "insert"][0][2][0]
+    assert fila["url"].endswith("episodes-1/000-top.png")
+    assert fila["episode_id"] == "episodes-1"
+    assert "png" not in fila          # los bytes no van a la base
+
+
+def test_una_foto_con_url_ya_puesta_no_sube_nada(tmp_path):
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+    log.begin(seed=1)
+
+    log.snapshot(after_seq=0, view="side", url="https://ya.esta/ahi.png")
+
+    assert cliente.tablas()[-1] == "snapshots"
+
+
+def test_si_falla_la_subida_no_se_escribe_una_fila_que_apunta_a_nada(tmp_path):
+    class StorageRoto(ClienteFalso):
+        def upload_png(self, path, data, *, bucket="snapshots"):
+            raise RuntimeError("snapshots: HTTP 507 sin espacio")
+
+    cliente = StorageRoto()
+    log = log_conectado(tmp_path, cliente)
+    log.begin(seed=1)
+
+    log.snapshot(after_seq=0, view="top", png=b"x")
+
+    assert "snapshots" not in cliente.tablas()
+
+
+def test_end_solo_manda_lo_que_cambia_al_cerrar(tmp_path):
+    """API.md §3: seed, task, level y n_objects se fijaron en begin()."""
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+    log.begin(seed=7, n_objects=10)
+
+    log.end(episodio())
+
+    datos = [c for c in cliente.llamadas if c[0] == "patch"][0][3]
+    assert set(datos) == {"status", "duration_s", "n_placed", "score", "failure",
+                          "metrics", "ended_at"}

@@ -11,5 +11,31 @@ requires-python = ">=3.11"
 # paquete nuevo es algo que puede romperse la noche antes de la demo.
 dependencies = []
 
+# Solo para desarrollar y para CI. El SDK que importa la simulación sigue sin
+# dependencias: nada de esto viaja con él.
+#
+# Clavadas a una versión exacta y no a un mínimo: ruff cambia de reglas por defecto
+# entre versiones menores, así que un `>=` deja que CI se ponga rojo un martes por algo
+# que nadie ha tocado. Subirlas es un commit, y eso es justo lo que se quiere.
+[project.optional-dependencies]
+dev = ["pytest==9.1.1", "ruff==0.16.8"]
+
 [tool.setuptools]
 packages = ["theker_telemetry"]
+
+[tool.pytest.ini_options]
+# backfill.py y seed/ son scripts sueltos, no entran en el paquete instalado.
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+# El código se escribe a ~90 a mano; el límite está alto a propósito para que E501
+# solo cace líneas desbocadas y no obligue a romper la tabla alineada de CAMPAIGN,
+# donde la alineación ES lo que deja leer la curva de mejora de un vistazo.
+line-length = 120
+
+[tool.ruff.lint]
+# Explícito a propósito: sin esto, el conjunto por defecto cambia con la versión de
+# ruff y CI se pone rojo por algo que nadie ha tocado. E/F son los errores de verdad,
+# I ordena los imports, UP evita que el código se quede en Python 3.8.
+select = ["E", "F", "I", "UP"]

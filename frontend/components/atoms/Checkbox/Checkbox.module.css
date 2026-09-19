@@ -1,0 +1,39 @@
+.hit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+
+.box {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  border: 1.5px solid var(--control-border);
+  border-radius: 5px;
+  background: var(--surface);
+  cursor: inherit;
+  display: grid;
+  place-content: center;
+}
+.box:hover:not(:disabled) { border-color: var(--select); }
+
+/* La tinta marca la selección: es justo su trabajo aquí. */
+.box:checked { background: var(--select); border-color: var(--select); }
+.box:checked::after {
+  content: "";
+  width: 4px;
+  height: 9px;
+  border: solid var(--on-select);
+  border-width: 0 2px 2px 0;
+  transform: translateY(-1px) rotate(45deg);
+}
+.box:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.withText { width: auto; padding: 0 4px; gap: 8px; }
+
+/* El área táctil también dice que no se puede. */
+.hit:has(.box:disabled) { cursor: not-allowed; }

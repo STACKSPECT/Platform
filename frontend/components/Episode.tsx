@@ -3,11 +3,10 @@
 import { useState } from "react";
 import type { Placement, PalletState, RunEvent } from "@/lib/supabase";
 import {
-  EVENT_TEXT, deg, failureText, kg, mm, pct, seconds, signedMm, stabilityState,
+  EVENT_TEXT, deg, kg, mm, pct, seconds, signedMm, stabilityState,
 } from "@/lib/ui";
 
-/* ── feed de eventos ────────────────────────────────────────────────────── */
-
+/* Color de cada tipo de evento, para la leyenda de la línea de tiempo. */
 const EVENT_COLOR: Record<string, string> = {
   perceive: "var(--text-4)",
   plan: "var(--select)",
@@ -16,94 +15,6 @@ const EVENT_COLOR: Record<string, string> = {
   settle: "var(--text-3)",
   fail: "var(--bad)",
 };
-
-/** El detalle de cada evento, ya con sus unidades. Es lo que convierte el feed en
- *  información en vez de en una lista de verbos. */
-function detail(e: RunEvent): string {
-  const p = (e.payload ?? {}) as Record<string, unknown>;
-  switch (e.kind) {
-    case "perceive":
-      return [
-        p.seen != null ? `${p.seen} paquete${p.seen === 1 ? "" : "s"}` : null,
-        p.confidence != null ? `confianza ${p.confidence}` : null,
-      ].filter(Boolean).join(" · ");
-    case "plan":
-      return [p.layer != null ? `capa ${p.layer}` : null,
-              p.slot ? `hueco ${p.slot}` : null].filter(Boolean).join(" · ");
-    case "pick":
-      return p.mass_kg != null ? kg(Number(p.mass_kg)) : "";
-    case "place":
-      return [
-        p.error_xy_mm != null ? `error ${p.error_xy_mm} mm` : null,
-        p.error_yaw_deg != null ? `${p.error_yaw_deg}°` : null,
-        Number(p.overhang_mm) > 0 ? `fuera del palé ${p.overhang_mm} mm` : null,
-      ].filter(Boolean).join(" · ");
-    case "settle":
-      return [p.layer != null ? `capa ${p.layer}` : null,
-              p.drift_mm != null ? `deriva ${p.drift_mm} mm` : null]
-        .filter(Boolean).join(" · ");
-    case "fail":
-      return failureText(String(p.cause ?? ""));
-    default:
-      return "";
-  }
-}
-
-export function EventFeed({ events, limit = 12, title = "Eventos", note }: {
-  events: RunEvent[]; limit?: number; title?: string; note?: string;
-}) {
-  const rows = [...events].sort((a, b) => b.seq - a.seq).slice(0, limit);
-
-  return (
-    <div className="card" style={{ flex: 1, minHeight: 0 }}>
-      <div style={{
-        height: 42, flexShrink: 0, padding: "0 16px", display: "flex",
-        alignItems: "center", justifyContent: "space-between",
-        borderBottom: "1px solid var(--border-soft)",
-      }}>
-        <span className="label">{title}</span>
-        <span style={{ fontSize: 11.5, color: "var(--text-4)" }}>
-          {note ?? `últimos ${limit} · t desde el inicio del episodio`}
-        </span>
-      </div>
-      <div style={{ overflowY: "auto", minHeight: 0 }}>
-        {rows.map((e, i) => (
-          <div key={e.id ?? e.seq}
-               style={{
-                 height: 38, display: "flex", alignItems: "center", gap: 12,
-                 padding: "0 16px", background: i % 2 ? "var(--row-alt)" : "transparent",
-                 fontSize: 13,
-               }}>
-            <span className="num" style={{ color: "var(--text-4)", width: 54, flexShrink: 0 }}>
-              {seconds(e.ts)}
-            </span>
-            <span style={{
-              width: 8, height: 8, flexShrink: 0,
-              background: EVENT_COLOR[e.kind] ?? "var(--text-4)",
-            }} />
-            <span style={{ width: 92, flexShrink: 0 }}>{EVENT_TEXT[e.kind] ?? e.kind}</span>
-            <span className="mono" style={{
-              width: 74, flexShrink: 0, color: "var(--text-3)", fontSize: 12,
-            }}>
-              {e.package_id ?? ""}
-            </span>
-            <span style={{
-              color: e.kind === "fail" ? "var(--bad)" : "var(--text-2)", fontSize: 12.5,
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-            }}>
-              {detail(e)}
-            </span>
-          </div>
-        ))}
-        {!rows.length && (
-          <div style={{ padding: 24, color: "var(--text-5)", fontSize: 13 }}>
-            Todavía no hay eventos de este episodio.
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 /* ── traza del centro de gravedad ───────────────────────────────────────── */
 
@@ -147,12 +58,12 @@ export function CogTrace({ states, height = 220, cursor }: {
 
       {[hi, 0, lo].map((v) => (
         <text key={v} x={padL - 8} y={Y(v) + 3.5} textAnchor="end" fontSize={9.5}
-              fill="var(--text-5)" fontFamily="var(--font-plex-mono), monospace">
+              fill="var(--text-4)" fontFamily="var(--font-mono), monospace">
           {v > 0 ? "+" : ""}{v.toFixed(0)}
         </text>
       ))}
       <text x={padL - 8} y={padT - 4} textAnchor="end" fontSize={9}
-            fill="var(--text-5)" fontFamily="var(--font-plex-mono), monospace">mm</text>
+            fill="var(--text-4)" fontFamily="var(--font-mono), monospace">mm</text>
 
       <path d={line} fill="none" stroke="var(--select)" strokeWidth={1.8} />
 
@@ -161,12 +72,12 @@ export function CogTrace({ states, height = 220, cursor }: {
                 fill={`var(--${stabilityState(v / 1000)})`} />
       ))}
 
-      <text x={padL} y={height - 7} fontSize={9.5} fill="var(--text-5)"
-            fontFamily="var(--font-plex-mono), monospace">
+      <text x={padL} y={height - 7} fontSize={9.5} fill="var(--text-4)"
+            fontFamily="var(--font-mono), monospace">
         paquete 1
       </text>
       <text x={w - padR} y={height - 7} textAnchor="end" fontSize={9.5}
-            fill="var(--text-5)" fontFamily="var(--font-plex-mono), monospace">
+            fill="var(--text-4)" fontFamily="var(--font-mono), monospace">
         paquete {states.length}
       </text>
     </svg>

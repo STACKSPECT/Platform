@@ -1,0 +1,11 @@
+.tab {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-3);
+  text-decoration: none;
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+}
+.tab:hover { color: var(--text); background: var(--row-hover); }
+/* La pestaña activa, en tinta: negro sobre blanco en el tema claro, y al revés. */
+.active, .active:hover { color: var(--on-select); background: var(--select); }
