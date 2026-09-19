@@ -35,23 +35,30 @@ done
 
 echo "── credenciales ──────────────────────────────────────────────"
 
+# Un solo fichero de credenciales, en la raíz: lo lee load_env() del lado Python y,
+# a través de frontend/next.config.ts, también el front. Dos copias se desincronizan
+# solas, y ya pasó una vez.
 falta_env=false
-for f in .env frontend/.env.local; do
-  if [[ ! -f "$f" ]]; then
-    error "falta $f"
-    falta_env=true
-  elif ! grep -qE '^(NEXT_PUBLIC_)?SUPABASE_URL=[^[:space:]]' "$f"; then
-    error "$f existe pero SUPABASE_URL está vacío"
-    falta_env=true
-  else
-    ok "$f"
-  fi
-done
+if [[ ! -f .env ]]; then
+  error "falta .env"
+  falta_env=true
+else
+  for clave in SUPABASE_URL SUPABASE_ANON_KEY SUPABASE_SERVICE_KEY; do
+    if grep -qE "^${clave}=[^[:space:]]" .env; then
+      ok ".env: $clave"
+    else
+      error ".env: $clave sin valor"
+      falta_env=true
+    fi
+  done
+fi
+if [[ -f frontend/.env.local ]]; then
+  aviso "frontend/.env.local existe y ya no hace falta; sus valores ganarían al .env"
+fi
 if $falta_env; then
   echo
   echo "  Copia .env.example a .env y rellena los valores desde Supabase:"
   echo "  Project Settings -> Data API -> Project URL y API Keys."
-  echo "  frontend/.env.local lleva los dos primeros, con prefijo NEXT_PUBLIC_."
   exit 1
 fi
 

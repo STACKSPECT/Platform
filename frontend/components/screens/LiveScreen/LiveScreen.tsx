@@ -17,8 +17,8 @@ export function LiveScreen() {
   if (state === "unconfigured") {
     return (
       <Notice title="Falta configurar Supabase">
-        Crea <code>frontend/.env.local</code> con <code>NEXT_PUBLIC_SUPABASE_URL</code> y{" "}
-        <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>.
+        Rellena <code>.env</code> en la raíz del repo con <code>SUPABASE_URL</code> y{" "}
+        <code>SUPABASE_ANON_KEY</code>.
       </Notice>
     );
   }

@@ -93,8 +93,14 @@ export DATABASE_URL=postgresql://postgres:postgres@localhost:5433/postgres
 ruff check backend && pytest backend -q
 ```
 
-`frontend/.env.local` lleva **solo** `NEXT_PUBLIC_SUPABASE_URL` y
-`NEXT_PUBLIC_SUPABASE_ANON_KEY`. La `service_role` nunca entra ahí: se salta RLS.
+**Un solo fichero de credenciales**, el `.env` de la raíz. Lo lee `load_env()` del lado
+Python y, vía `frontend/next.config.ts`, también el front: ese fichero traduce
+`SUPABASE_URL` y `SUPABASE_ANON_KEY` a sus `NEXT_PUBLIC_*` por **lista blanca**. No hay
+`frontend/.env.local`, porque dos copias de lo mismo se desincronizan solas.
+
+La `service_role` jamás sale de ahí: se salta RLS, y todo lo que lleva `NEXT_PUBLIC_` se
+empaqueta en el JavaScript que descarga cualquiera. `next.config.ts` rompe el build si
+una variable pública lleva un nombre que huela a secreto.
 
 ---
 
