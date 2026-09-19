@@ -79,8 +79,11 @@ select
   -- "4 de 5 capas · 400 mm de carga"
   (select max(p.layer) from placements p where p.episode_id = e.id)
                                                                as n_layers,
+  -- `dims_m` es real[], así que el numeric del JSON y el real del array se promocionan
+  -- a double precision, y round(double precision, int) no existe en Postgres. Se
+  -- castea la expresión entera a numeric antes de redondear.
   (select round(max((p.actual_pose->>'z')::numeric
-                    + coalesce(p.dims_m[3], 0) / 2.0), 4)
+                    + coalesce(p.dims_m[3], 0)::numeric / 2.0)::numeric, 4)
      from placements p
     where p.episode_id = e.id and p.placed and p.actual_pose ? 'z')
                                                                as load_height_m
