@@ -39,6 +39,7 @@ frontend/                Next.js 16. Lee Supabase con la clave anon, bajo RLS.
   app/                     rutas: / (Live), /runs, /runs/[id], /runs/[id]/[seed]
   components/              Pallet, Episode, Runs, primitives, TopBar
   lib/ui.ts                TODA conversión de unidades, en un solo sitio
+  styles/colors.css        TODOS los colores, en un solo sitio
   lib/supabase.ts          tipos, consultas y comparability()
 
 docs/
@@ -193,6 +194,10 @@ evolución en vez de borrón y cuenta nueva.
 
 - Python 3.11, type hints en las firmas públicas. TypeScript estricto en el front.
 - Unidades SI en el dato, milímetros y grados en la pantalla.
+- **Colores solo como variables, y definidas en un único archivo:** `frontend/styles/colors.css`.
+  Ningún otro archivo (CSS, TS, TSX) lleva `#hex`, `rgb()`, `hsl()` ni un color con nombre;
+  consume `var(--…)`. Un color con transparencia es otra variable de ese archivo, calculada
+  con `color-mix` desde la base. `npm run lint` lo comprueba (`scripts/check-colors.mjs`).
 - Nombres de código en inglés; comentarios y documentos en castellano.
 - Commits pequeños, con números cuando toquen comportamiento.
 - El diseño de referencia es `docs/design/observality-platform-design.html`: un bundle

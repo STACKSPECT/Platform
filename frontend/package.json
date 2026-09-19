@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint && node scripts/check-colors.mjs",
+    "lint:colors": "node scripts/check-colors.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",
