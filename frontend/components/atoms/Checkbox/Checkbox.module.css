@@ -31,3 +31,5 @@
   transform: translateY(-1px) rotate(45deg);
 }
 .box:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.withText { width: auto; padding: 0 4px; gap: 8px; }

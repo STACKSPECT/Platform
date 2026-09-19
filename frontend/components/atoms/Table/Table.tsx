@@ -14,8 +14,10 @@ export function Table({ children }: { children: ReactNode }) {
   );
 }
 
-export function Th({ align = "left", children }: { align?: Align; children?: ReactNode }) {
-  return <th className={cx(styles.th, styles[align])}>{children}</th>;
+export function Th({ align = "left", label, children }: {
+  align?: Align; label?: string; children?: ReactNode;
+}) {
+  return <th className={cx(styles.th, styles[align])} aria-label={label}>{children}</th>;
 }
 
 export function Td({ align = "left", children }: { align?: Align; children?: ReactNode }) {

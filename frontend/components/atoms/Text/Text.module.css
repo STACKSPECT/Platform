@@ -33,3 +33,7 @@
   white-space: nowrap;
   min-width: 0;
 }
+
+/* Van después de las variantes para ganarles con la misma especificidad. */
+.md { font-size: 14px; }
+.lg { font-size: 15px; }

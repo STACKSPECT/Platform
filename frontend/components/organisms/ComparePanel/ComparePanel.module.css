@@ -1,0 +1,10 @@
+.header {
+  min-height: 56px;
+  padding: 10px 28px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.spacer { flex-grow: 1; }

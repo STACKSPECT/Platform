@@ -1,5 +1,5 @@
 export { Text } from "./Text";
-export type { TextVariant, TextTone } from "./Text";
+export type { TextVariant, TextTone, TextSize } from "./Text";
 export { Value } from "./Value";
 export { Button } from "./Button";
 export { Dot } from "./Dot";

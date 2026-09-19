@@ -1,0 +1,17 @@
+.result {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) minmax(0, 3.4fr);
+  align-items: stretch;
+}
+.column, .failures { padding: 36px 32px; border-right: 1px solid var(--border-soft); }
+.column { display: flex; align-items: center; }
+.failures { border-right: 0; display: flex; flex-direction: column; gap: 22px; }
+.bars { display: flex; flex-direction: column; gap: 18px; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px 26px; padding-left: 100px; }
+
+/* Estrecho: las tres zonas se apilan y las separa una línea horizontal. */
+@media (max-width: 1000px) {
+  .result { grid-template-columns: minmax(0, 1fr); }
+  .column, .failures { border-right: 0; border-bottom: 1px solid var(--border-soft); padding: 24px 20px; }
+  .legend { padding-left: 0; }
+}
