@@ -9,3 +9,4 @@ export { usePalletStates } from "./usePalletStates";
 export { useEvents } from "./useEvents";
 export { useEpisodeDetail } from "./useEpisodeDetail";
 export { useFailureBreakdown } from "./useFailureBreakdown";
+export { useEpisodeRealtime } from "./useEpisodeRealtime";
