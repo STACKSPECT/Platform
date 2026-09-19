@@ -1,7 +1,7 @@
 import { useRouter } from "next/navigation";
 import {
   useEpisodeDetail, useEpisodes, useRun, useSnapshots,
-} from "@/api/hooks";
+} from "@/lib/api/hooks";
 import { configured } from "@/lib/supabase";
 import { routes } from "@/lib/routes";
 import { buildEpisodeView } from "../../organisms/EpisodeDashboard";

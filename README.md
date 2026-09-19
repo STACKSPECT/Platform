@@ -300,8 +300,8 @@ backend/                 SQL + SDK. Supabase IS the backend; there is no server 
 
 frontend/                Next.js 16. Reads Supabase with the anon key, under RLS.
   app/                     routes: / (Live), /runs, /runs/[id], /runs/[id]/[seed]
-  api/clients/             one function per PostgREST endpoint
-  api/hooks/               the same, wrapped in TanStack Query
+  lib/api/clients/         one function per PostgREST endpoint
+  lib/api/hooks/           the same, wrapped in TanStack Query
   components/              atoms / molecules / organisms / screens
   lib/ui.ts                ALL unit conversion, in one place
   lib/pallet.ts            drawing geometry; the pallet size is NOT fixed

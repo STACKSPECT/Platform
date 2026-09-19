@@ -137,11 +137,13 @@
 :root {
   /* Relleno de lo seleccionado. */
   --select-row:  color-mix(in srgb, var(--select) 7%, transparent);   /* fila de tabla */
-  --select-fill: color-mix(in srgb, var(--select) 14%, transparent);  /* último paquete, muestra de leyenda */
 
-  /* Rellenos del dibujo del palé. */
-  --neutral-fill: color-mix(in srgb, var(--text-2) 10%, transparent);  /* paquete colocado */
-  --bad-fill:     color-mix(in srgb, var(--bad) 16%, transparent);     /* paquete fuera de tolerancia */
+  /* Rellenos del dibujo del palé. Son OPACOS (mezclados con --surface, no con transparencia):
+     un paquete tapa al que tiene debajo, como en la realidad, y su color no depende de lo que
+     haya detrás. Así la muestra de la leyenda es exactamente el color del dibujo. */
+  --select-fill:  color-mix(in srgb, var(--select) 14%, var(--surface));   /* último paquete, muestra de leyenda */
+  --neutral-fill: color-mix(in srgb, var(--text-2) 10%, var(--surface));   /* paquete colocado */
+  --bad-fill:     color-mix(in srgb, var(--bad) 16%, var(--surface));      /* paquete fuera de tolerancia */
 
   /* Aviso de conexión perdida. */
   --warn-banner: color-mix(in srgb, var(--warn) 10%, transparent);

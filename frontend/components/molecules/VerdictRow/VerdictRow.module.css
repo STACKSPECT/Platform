@@ -1,0 +1,15 @@
+.row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 2px 12px;
+  padding: 10px 12px;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius-1);
+}
+.row:hover { background: var(--row-hover); }
+.label { font-weight: 600; }
+.verdict { font-weight: 600; }
+/* El detalle va debajo, alineado con el nombre y no con el punto. */
+.detail { grid-column: 2 / -1; }

@@ -1,6 +1,6 @@
 import type { PalletState, Placement } from "@/lib/supabase";
 import {
-  PALLET_DEFAULT, drawable, envelope, lastPlacement,
+  PALLET_DEFAULT, drawable, envelope, lastPlacement, span,
   type Box, type PalletSize,
 } from "@/lib/pallet";
 import { mm, signedMm, stabilityState, type State } from "@/lib/ui";
@@ -9,14 +9,19 @@ const PAD = { l: 46, r: 24, t: 34, b: 40 };
 
 type Rect = { x: number; y: number; width: number; height: number };
 type Label = { x: number; y: number; text: string };
+/** Giro ya en grados de pantalla, alrededor del centro del paquete. */
+type Spin = { deg: number; cx: number; cy: number };
 
 export type TopViewModel = {
   width: number;
   height: number;
   frame: Rect;
   /** El hueco planificado del último paquete: enseña cuánto se desvió. */
-  planned: Rect | null;
-  packages: Array<Rect & { key: number; variant: "placed" | "last" | "failed"; label: string | null }>;
+  planned: (Rect & { rotate?: Spin }) | null;
+  packages: Array<Rect & {
+    key: number; variant: "placed" | "last" | "failed"; label: Label | null;
+    rotate?: Spin;
+  }>;
   support: Rect | null;
   cog: { x: number; y: number } | null;
   tone: State;
@@ -44,6 +49,11 @@ export function buildTopView(
   const Y = (y: number) => PAD.t + (PY / 2 - y) * scale;
   const rectOf = (cx: number, cy: number, dx: number, dy: number): Rect =>
     ({ x: X(cx - dx / 2), y: Y(cy + dy / 2), width: dx * scale, height: dy * scale });
+  /* El paquete se dibuja sin girar y se gira con un `transform`, que es lo que mantiene
+     el rectángulo (y su radio de esquina) intacto. +Y del mundo sube en pantalla, así
+     que un giro antihorario en el palé se ve horario: el ángulo va cambiado de signo. */
+  const spin = (cx: number, cy: number, yaw: number | undefined): Spin | undefined =>
+    yaw ? { deg: (-yaw * 180) / Math.PI, cx: X(cx), cy: Y(cy) } : undefined;
   const boxRect = (b: Box): Rect =>
     ({ x: X(b.x0), y: Y(b.y1), width: (b.x1 - b.x0) * scale, height: (b.y1 - b.y0) * scale });
 
@@ -56,11 +66,17 @@ export function buildTopView(
     .sort((a, b) => (a.layer ?? 0) - (b.layer ?? 0) || a.seq - b.seq)
     .map((p) => {
       const isLast = p.seq === last?.seq;
+      const { x, y, yaw } = p.actual_pose;
+      const [dx, dy] = p.dims_m;
       return {
         key: p.seq,
-        ...rectOf(p.actual_pose.x, p.actual_pose.y, p.dims_m[0], p.dims_m[1]),
+        ...rectOf(x, y, dx, dy),
+        rotate: spin(x, y, yaw),
         variant: (!p.placed ? "failed" : isLast ? "last" : "placed") as "placed" | "last" | "failed",
-        label: isLast ? p.package_id : null,
+        // La etiqueta va sobre el paquete YA girado: de canto ocupa otro alto.
+        label: isLast
+          ? { x: X(x), y: Y(y + span(dy, dx, yaw) / 2) - 7, text: p.package_id }
+          : null,
       };
     });
 
@@ -75,7 +91,10 @@ export function buildTopView(
     width, height,
     frame: boxRect({ x0: -PX / 2, x1: PX / 2, y0: -PY / 2, y1: PY / 2 }),
     planned: last?.planned_pose && last.dims_m
-      ? rectOf(last.planned_pose.x, last.planned_pose.y, last.dims_m[0], last.dims_m[1])
+      ? {
+          ...rectOf(last.planned_pose.x, last.planned_pose.y, last.dims_m[0], last.dims_m[1]),
+          rotate: spin(last.planned_pose.x, last.planned_pose.y, last.planned_pose.yaw),
+        }
       : null,
     packages,
     support: below ? boxRect(below) : null,

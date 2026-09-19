@@ -22,3 +22,5 @@ export { Table, Th, Td, Tr } from "./Table";
 export { Sparkline } from "./Sparkline";
 export { Logo } from "./Logo";
 export { IconButton } from "./IconButton";
+export { Trend } from "./Trend";
+export type { TrendPoint } from "./Trend";

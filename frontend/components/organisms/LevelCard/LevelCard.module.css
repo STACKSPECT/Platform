@@ -1,0 +1,41 @@
+.card { min-width: 0; container-type: inline-size; }
+
+/* La cabecera es el resumen plegable: se ve siempre, abierta o cerrada. */
+.header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 24px 28px;
+  cursor: pointer;
+  list-style: none;          /* el triángulo del navegador sobra: hay chevron propio */
+}
+.header::-webkit-details-marker { display: none; }
+.header:focus-visible { outline: 2px solid var(--select); outline-offset: -2px; }
+
+/* Decorativo: quien dice si está plegada es el propio `<details>`. */
+.chevron { display: inline-flex; color: var(--text-5); flex: none; }
+.details[open] .chevron { transform: rotate(90deg); }
+@media (prefers-reduced-motion: no-preference) {
+  .chevron { transition: transform 120ms ease; }
+}
+
+.title { display: flex; align-items: baseline; gap: 12px; min-width: 0; flex-wrap: wrap; flex: 1; }
+.name { font-weight: 700; }
+.tags { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* Las métricas se reparten el ancho de LA TARJETA, no el de la ventana: una columna en una tarjeta
+   estrecha, 2×2 en una media y todas en fila en una muy ancha. Así nunca queda un mosaico huérfano
+   ni media tarjeta vacía. */
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  padding: 0 28px 28px;
+}
+@container (min-width: 640px) {
+  .body { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container (min-width: 1180px) {
+  .body { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+}

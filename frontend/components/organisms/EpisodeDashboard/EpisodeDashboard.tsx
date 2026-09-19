@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
-import { Button, Text } from "../../atoms";
-import { LegendItem, ResultCard, SnapshotView } from "../../molecules";
+import { Text } from "../../atoms";
+import { LegendItem, ResultCard, SegmentedControl, SnapshotView } from "../../molecules";
 import { EventFeed } from "../EventFeed";
 import { IdentityBar } from "../IdentityBar";
 import { KpiGrid } from "../KpiGrid";
@@ -29,9 +29,11 @@ export function EpisodeDashboard({ view, header, banner, picker }: Props) {
   const [shot, setShot] = useState(false);
   const hasShots = Boolean(view.shots.top || view.shots.side);
   const toggle = hasShots && (
-    <Button onClick={() => setShot((v) => !v)}>
-      {shot ? "Ver esquema" : "Ver captura"}
-    </Button>
+    <SegmentedControl
+      compact name="scene-source" label="Qué se dibuja en la escena"
+      options={[{ value: "scheme", label: "Esquema" }, { value: "shot", label: "Captura" }]}
+      value={shot ? "shot" : "scheme"} onChange={(v) => setShot(v === "shot")}
+    />
   );
 
   return (
@@ -44,10 +46,12 @@ export function EpisodeDashboard({ view, header, banner, picker }: Props) {
         <div className={styles.stage}>
           <Panel
             title="Vista cenital" padded
-            aside={shot ? toggle : <>
-              <LegendItem swatch="planned" label="hueco" />
-              <LegendItem swatch="last" label="último" />
-              <LegendItem swatch="support" label="soporte" />
+            aside={<>
+              {!(shot && view.shots.top) && <>
+                <LegendItem swatch="planned" label="hueco" />
+                <LegendItem swatch="last" label="último" />
+                <LegendItem swatch="support" label="soporte" />
+              </>}
               {toggle}
             </>}
           >

@@ -5,6 +5,7 @@ tablero entero a sus tres estados— así que conviene que su signo signifique l
 que significa: negativo = vuelca.
 """
 
+import math
 import os
 import random
 import subprocess
@@ -18,6 +19,7 @@ from seed.palletizing import CAMPAIGN, PACKAGES_BY_LEVEL, build_episode, episode
 from theker_telemetry.pallet import (
     TRANSPORT_ACCEL_G,
     stability_margin,
+    support_hull,
     support_polygon,
 )
 
@@ -38,6 +40,45 @@ def test_una_sola_caja_en_una_esquina_apoya_poco():
     x0, x1, y0, y1 = support_polygon([(0.30, 0.0, 0.580, 0.380)])
     assert round(x1 - x0, 3) == 0.580
     assert round(y1 - y0, 3) == 0.380
+
+
+# ── cajas giradas ────────────────────────────────────────────────────────────
+# El paletizado gira paquetes a propósito (90° para que entren en la fila). Sin esto,
+# `dims_m` se leía como si siempre estuviera alineado con los ejes y una caja de canto
+# apoyaba su lado largo: el apoyo salía más grande de lo que es.
+
+def test_girar_90_grados_intercambia_los_lados_del_apoyo():
+    recta = support_polygon([(0.0, 0.0, 0.48, 0.34)])
+    canto = support_polygon([(0.0, 0.0, 0.48, 0.34, math.pi / 2)])
+    assert (round(recta[1] - recta[0], 3), round(recta[3] - recta[2], 3)) == (0.48, 0.34)
+    assert (round(canto[1] - canto[0], 3), round(canto[3] - canto[2], 3)) == (0.34, 0.48)
+
+
+def test_una_caja_sin_yaw_se_sigue_escribiendo_con_cuatro_numeros():
+    """La tupla de 5 es opcional: el sembrado y la simulación de hoy no cambian."""
+    assert support_polygon([(0.0, 0.0, 0.48, 0.34)]) == \
+        support_polygon([(0.0, 0.0, 0.48, 0.34, 0.0)])
+
+
+def test_el_apoyo_girado_no_regala_las_esquinas():
+    """Con una caja a 45° el rectángulo envolvente incluye esquinas donde no apoya nada.
+
+    Es la diferencia entre un margen optimista y uno cierto: en este CoG el envolvente
+    diría +174 mm (estable) y el apoyo real dice que vuelca.
+    """
+    rombo = [(0.0, 0.0, 0.6, 0.6, math.pi / 4)]
+    x0, x1, y0, y1 = support_polygon(rombo)
+    por_el_envolvente = min(0.25 - x0, x1 - 0.25, 0.25 - y0, y1 - 0.25)
+    assert por_el_envolvente > 0
+    assert stability_margin(0.25, 0.25, 0.0, rombo) < 0
+
+
+def test_el_casco_de_una_caja_girada_tiene_sus_cuatro_esquinas():
+    hull = support_hull([(0.0, 0.0, 0.6, 0.6, math.pi / 4)])
+    assert len(hull) == 4
+    # A 45° las esquinas caen sobre los ejes, a media diagonal del cuadrado.
+    d = 0.6 * math.sqrt(2) / 2
+    assert sorted(round(math.dist((0.0, 0.0), p), 4) for p in hull) == [round(d, 4)] * 4
 
 
 # ── el margen de estabilidad ─────────────────────────────────────────────────

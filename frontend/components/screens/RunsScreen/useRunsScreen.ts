@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useFailureBreakdown, useRuns } from "@/api/hooks";
+import { useFailureBreakdown, useRuns } from "@/lib/api/hooks";
 import { configured } from "@/lib/supabase";
 import { routes } from "@/lib/routes";
 import {

@@ -5,8 +5,8 @@ PostgREST, más los canales Realtime. Este documento sale de `backend/sql/001_sc
 `backend/sql/002_design.sql` y `backend/theker_telemetry/core.py`; las respuestas de ejemplo son
 la forma de las columnas, no capturas de una base real.
 
-Los clientes del front que los consumen están en `frontend/api/clients/` y los hooks en
-`frontend/api/hooks/`. Los tipos siguen en `frontend/lib/supabase.ts`, que es lo que
+Los clientes del front que los consumen están en `frontend/lib/api/clients/` y los hooks en
+`frontend/lib/api/hooks/`. Los tipos siguen en `frontend/lib/supabase.ts`, que es lo que
 compara `backend/tests/test_contrato.py` contra las columnas de verdad.
 
 ## 1. Convenciones
@@ -167,6 +167,10 @@ Solo aparecen causas con al menos un episodio: un run sin fallos devuelve `[]`.
 
 `planned_pose`/`actual_pose` son jsonb y pueden ser `null`. `dims_m` es `[largo, ancho, alto]`.
 Las tres poses/dimensiones están en metros y radianes.
+
+El `yaw` de la pose **se dibuja**: `dims_m` va en el eje del paquete, no en el del palé, así que
+un paquete girado 90° ocupa `ancho` en X y `largo` en Y. Quien produce episodios no tiene que
+premasticarlo —no hay que intercambiar `dims_m`—: basta con mandar el `yaw` de verdad.
 
 ### 2.5 `GET /pallet_states`: traza del centro de gravedad
 
