@@ -7,7 +7,9 @@ import { configured } from "@/lib/supabase";
 import { useHold } from "@/hooks/useHold";
 import { useNow } from "@/hooks/useNow";
 import { buildEpisodeView } from "../../organisms/EpisodeDashboard";
-import { HOLD_MS, LIVE_POLL_MS, isStale, staleDetail } from "./LiveScreen.helper";
+import {
+  HOLD_MS, LIVE_POLL_MS, isStale, staleDetail, staleMessage,
+} from "./LiveScreen.helper";
 
 /** Une los datos de Live en un solo modelo para la pantalla. Aquí no se dibuja nada.
  *
@@ -38,7 +40,7 @@ export function useLiveScreen() {
   }, [holding, refetchEpisodes]);
 
   const detail = useEpisodeDetail(episode?.id);
-  const { lastReceivedAt } = useEpisodeRealtime(episode?.id);
+  const { lastReceivedAt, subscribed } = useEpisodeRealtime(episode?.id);
   const snapshots = useSnapshots(episode?.id);
 
   const now = useNow(episode ? 1000 : null);
@@ -59,9 +61,9 @@ export function useLiveScreen() {
 
   // Con un episodio en pantalla, un fallo de red no lo vacía: se congela y se avisa. El latido
   // solo vigila lo que corre: uno terminado no manda datos, y eso no es una conexión perdida.
+  const fetchFailed = live.isError || detail.isError;
   const stale = isStale({
-    running: episode.status === "running",
-    fetchFailed: live.isError || detail.isError, lastSignalAt, now,
+    running: episode.status === "running", fetchFailed, lastSignalAt, now,
   });
 
   return {
@@ -69,6 +71,7 @@ export function useLiveScreen() {
     retry,
     stale,
     finished: holding,
+    staleMessage: staleMessage({ subscribed, fetchFailed }),
     staleDetail: staleDetail(lastSignalAt),
     view: buildEpisodeView({
       episode,

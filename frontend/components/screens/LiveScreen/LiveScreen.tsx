@@ -43,7 +43,7 @@ export function LiveScreen() {
     <EpisodeDashboard
       view={s.view}
       banner={s.stale ? (
-        <Banner message="Conexión perdida. Reintentando." detail={s.staleDetail}
+        <Banner message={s.staleMessage} detail={s.staleDetail}
                 actionLabel="Reintentar ahora" onAction={s.retry} />
       ) : s.finished ? (
         <Banner tone="info" message="El episodio ha terminado."
