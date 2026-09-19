@@ -56,14 +56,42 @@ export function lastPlacement(placements: Placement[]): Placement | null {
 
 export type Box = { x0: number; x1: number; y0: number; y1: number };
 
-/** Caja envolvente, en planta, de un grupo de colocaciones. `null` si no hay ninguna. */
+/** Las cuatro esquinas en planta, en metros, ya giradas por el `yaw` de la pose.
+ *
+ *  El planificador gira paquetes a propósito —90° para que entren en la fila—, así que
+ *  `dims_m` NO se puede leer como si siempre estuviera alineado con los ejes: una caja
+ *  de 480x340 puesta de canto ocupa 340 de ancho, no 480. */
+export function corners(p: Drawable): Array<[number, number]> {
+  const { x, y, yaw } = p.actual_pose;
+  const [dx, dy] = p.dims_m;
+  const cos = Math.cos(yaw ?? 0);
+  const sin = Math.sin(yaw ?? 0);
+  const esquinas: ReadonlyArray<readonly [number, number]> = [
+    [-dx / 2, -dy / 2], [dx / 2, -dy / 2], [dx / 2, dy / 2], [-dx / 2, dy / 2],
+  ];
+  return esquinas.map(([u, v]) => [x + u * cos - v * sin, y + u * sin + v * cos]);
+}
+
+/** Lo que la caja ocupa a lo largo de un eje una vez girada. Es lo que ve el alzado: un
+ *  paquete de canto se dibuja estrecho aunque su lado largo siga siendo el mismo. */
+export function span(dx: number, dy: number, yaw: number | undefined): number {
+  return dx * Math.abs(Math.cos(yaw ?? 0)) + dy * Math.abs(Math.sin(yaw ?? 0));
+}
+
+/** Caja envolvente, en planta, de un grupo de colocaciones. `null` si no hay ninguna.
+ *
+ *  Es la envolvente de las esquinas GIRADAS. Con giros que no son múltiplos de 90° el
+ *  apoyo real es el casco convexo de esas esquinas y este rectángulo lo sobreestima; se
+ *  usa para encuadrar el dibujo, nunca para decidir si el montón aguanta —ese número lo
+ *  calcula el backend (`theker_telemetry.pallet.stability_margin`) y llega ya hecho. */
 export function envelope(placements: Drawable[]): Box | null {
   if (!placements.length) return null;
+  const pts = placements.flatMap(corners);
   return {
-    x0: Math.min(...placements.map((p) => p.actual_pose.x - p.dims_m[0] / 2)),
-    x1: Math.max(...placements.map((p) => p.actual_pose.x + p.dims_m[0] / 2)),
-    y0: Math.min(...placements.map((p) => p.actual_pose.y - p.dims_m[1] / 2)),
-    y1: Math.max(...placements.map((p) => p.actual_pose.y + p.dims_m[1] / 2)),
+    x0: Math.min(...pts.map(([x]) => x)),
+    x1: Math.max(...pts.map(([x]) => x)),
+    y0: Math.min(...pts.map(([, y]) => y)),
+    y1: Math.max(...pts.map(([, y]) => y)),
   };
 }
 

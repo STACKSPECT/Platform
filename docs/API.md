@@ -168,6 +168,10 @@ Solo aparecen causas con al menos un episodio: un run sin fallos devuelve `[]`.
 `planned_pose`/`actual_pose` son jsonb y pueden ser `null`. `dims_m` es `[largo, ancho, alto]`.
 Las tres poses/dimensiones están en metros y radianes.
 
+El `yaw` de la pose **se dibuja**: `dims_m` va en el eje del paquete, no en el del palé, así que
+un paquete girado 90° ocupa `ancho` en X y `largo` en Y. Quien produce episodios no tiene que
+premasticarlo —no hay que intercambiar `dims_m`—: basta con mandar el `yaw` de verdad.
+
 ### 2.5 `GET /pallet_states`: traza del centro de gravedad
 
 `?select=*&episode_id=eq.{uuid}&order=after_seq.asc` → `getPalletStates(id)` / `usePalletStates(id)`

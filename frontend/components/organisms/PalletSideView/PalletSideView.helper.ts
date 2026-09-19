@@ -1,6 +1,6 @@
 import type { PalletState, Placement } from "@/lib/supabase";
 import {
-  PALLET_DEFAULT, deckHeight, drawable, lastPlacement, loadHeight, minStackHeight,
+  PALLET_DEFAULT, deckHeight, drawable, lastPlacement, loadHeight, minStackHeight, span,
   type PalletSize,
 } from "@/lib/pallet";
 import { mm, stabilityState, type State } from "@/lib/ui";
@@ -43,15 +43,20 @@ export function buildSideView(
   const last = lastPlacement(placements);
   const right = X(PX / 2);
 
-  const packages = items.map((p) => ({
-    key: p.seq,
-    x: X(p.actual_pose.x - p.dims_m[0] / 2),
-    y: Z(p.actual_pose.z + p.dims_m[2] / 2),
-    width: p.dims_m[0] * scale,
-    height: p.dims_m[2] * scale,
-    variant: (!p.placed ? "failed" : p.seq === last?.seq ? "last" : "placed") as
-      "placed" | "last" | "failed",
-  }));
+  const packages = items.map((p) => {
+    // De perfil se ve la silueta del paquete YA girado: uno de canto es estrecho. El
+    // alto no cambia, porque el giro es sobre el eje vertical.
+    const ancho = span(p.dims_m[0], p.dims_m[1], p.actual_pose.yaw);
+    return {
+      key: p.seq,
+      x: X(p.actual_pose.x - ancho / 2),
+      y: Z(p.actual_pose.z + p.dims_m[2] / 2),
+      width: ancho * scale,
+      height: p.dims_m[2] * scale,
+      variant: (!p.placed ? "failed" : p.seq === last?.seq ? "last" : "placed") as
+        "placed" | "last" | "failed",
+    };
+  });
 
   return {
     width, height,

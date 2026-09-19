@@ -25,9 +25,7 @@ export function PalletTopView({ placements, state,
       {v.packages.map(({ key, label, variant, ...box }) => (
         <g key={key}>
           <SceneRect variant={variant} {...box} />
-          {label && (
-            <SceneLabel x={box.x + box.width / 2} y={box.y - 7} text={label} anchor="middle" tone="muted" />
-          )}
+          {label && <SceneLabel {...label} anchor="middle" tone="muted" />}
         </g>
       ))}
 
