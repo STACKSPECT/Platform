@@ -58,14 +58,28 @@ perception. This repository knows about episodes, metrics and screens.
 
 ## Screenshots
 
-> [!NOTE]
-> **Placeholder — screenshots pending.** Two images go here, captured from a running
-> instance: `/runs` (the runs table, with filters, totals and the comparison panel) and
-> `/runs/{id}` (the episode dashboard: top view, side elevation, KPI grid and event
-> feed). They will live in `docs/img/`.
->
-> <!-- SCREENSHOT:runs -->
-> <!-- SCREENSHOT:episode -->
+**Runs** — every run with its totals, the filters, and the comparison panel. Here it is
+doing the job it exists for: **refusing** to compare two runs that do not measure the
+same thing, and saying exactly why.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/runs-dark.png">
+  <img alt="The Runs screen: a table of runs with filters and totals, and a comparison panel showing 'No comparable — these two runs do not measure the same thing', with the seed ranges 1–1 and 900–901 and zero seeds in common." src="docs/img/runs-light.png">
+</picture>
+
+**Episode** — the same dashboard Live uses, against one finished episode: pallet from
+above with the support polygon and the centre-of-gravity marker, the side elevation
+drawn to the real pallet size, the KPI grid, and the event feed. Every magnitude carries
+its unit.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/episode-dark.png">
+  <img alt="The Episode dashboard: top view of a pallet with dimensions and a centre-of-gravity marker, a side elevation, KPI cards reading 10 of 10 placed, 19.9 s per package, +58 mm stability margin and 77 % utilisation, and a timestamped event feed." src="docs/img/episode-light.png">
+</picture>
+
+<sub>Both screens follow the viewer's theme; the images above do too. Captured at
+1440 px from real measured runs — note the <b>Oracle</b> badge, which marks a run whose
+perception was replaced by ground-truth poses.</sub>
 
 ---
 
