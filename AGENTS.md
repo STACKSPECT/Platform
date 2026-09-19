@@ -79,7 +79,10 @@ python backend/seed/ejemplo_contrato.py       # una entrada que toca TODO el con
 python backend/seed/humo_live.py              # monta un palé en vivo: comprueba Live
 python backend/backfill.py --runs-dir <repo de la simulación>/simulation/runs
 
-# 5. Front
+# 5. Todo de una vez: comprueba credenciales, dependencias y esquema, y arranca.
+./dev.sh                  # --check para solo comprobar, --seed para sembrar antes
+
+# ...o solo el front, si ya sabes que lo demás está en su sitio
 cd frontend && npm install && npm run dev
 
 # 6. Tests. Sin DATABASE_URL corren los que no tocan la red; con él se añaden los
