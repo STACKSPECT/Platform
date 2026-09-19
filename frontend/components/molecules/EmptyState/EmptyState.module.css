@@ -1,0 +1,54 @@
+/* Ocupa la pantalla entera y centra: como las demás pantallas, altura fija y sin scroll de
+   página; si la ventana es tan baja que no cabe, scrollea ella. */
+.screen {
+  height: calc(100vh - var(--topbar-h));
+  height: calc(100dvh - var(--topbar-h));
+  overflow-y: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--page-pad);
+}
+
+.card {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 40px 32px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-3);
+  box-shadow: var(--elev-1);
+}
+
+.icon {
+  width: 56px;
+  height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  color: var(--text-3);
+  background: var(--row-alt);
+  border: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+
+.title { font-size: 20px; font-weight: 700; }
+.body { line-height: 1.6; max-width: 40ch; }
+
+.action {
+  margin-top: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--on-select);
+  background: var(--select);
+  border-radius: var(--radius-pill);
+}
+.action:hover { color: var(--on-select); opacity: 0.85; }

@@ -92,8 +92,7 @@ Una fila por episodio, con datos del run (`git_sha`, `oracle`, `synthetic`, `mot
 
 - Por run: `?select=*&run_id=eq.{uuid}&order=seed.asc` → `getEpisodes(runId)` / `useEpisodes(runId)`
 - Por run y semilla: `?select=*&run_id=eq.{uuid}&seed=eq.{n}` → `getEpisode(runId, seed)` / `useEpisode(runId, seed)` (`null` si no existe)
-- En curso: `?select=*&status=eq.running&limit=1`
-- Último (`getLatestEpisode()` / `useLatestEpisode()`): el episodio en curso si lo hay; si no, el más reciente. **Ver la nota de abajo.**
+- En curso (`getRunningEpisode()` / `useRunningEpisode()`): `?select=*&status=eq.running&order=started_at.desc&limit=1`. `null` si no hay ninguno. Es lo único que enseña Live: **no** cae al último terminado. Con varios en curso, el más reciente.
 
 ```json
 [{
@@ -132,8 +131,8 @@ etc. `failure` es el identificador crudo: la interfaz nunca lo muestra, usa `fai
 > **Resuelto: `v_episode_summary` ya tiene `started_at` y `ended_at`.** Se confirmó contra un
 > Postgres real: `?order=started_at.desc` daba `400 42703`, y ese era el motivo de que Live se
 > quedara en "todavía no hay episodios" siempre que no hubiera un episodio `running`. La vista de
-> `002_design.sql` los proyecta desde el commit que arregló esto, así que `getLatestEpisode` puede
-> volver a una sola consulta sobre la vista y tirar el rodeo por `GET /episodes`. Lo vigila
+> `002_design.sql` los proyecta desde el commit que arregló esto, así que el front ordena la vista
+> directamente (`getRunningEpisode`) sin el rodeo por `GET /episodes`. Lo vigila
 > `backend/tests/test_contrato.py`, que exige que toda columna usada en un `.order()`/`.eq()` exista
 > en la relación de su `.from()`.
 
@@ -201,8 +200,7 @@ Una fila por paquete depositado (estado **tras** colocarlo). `stability_margin_m
 
 ### 2.7 Tablas `runs` y `episodes` en crudo
 
-Legibles con `anon` (`lectura_publica`) pero **el front no las usa** salvo `episodes?select=id&order=started_at.desc`
-en `getLatestEpisode`. Columnas en AGENTS.md §6; la fila de `runs` lleva además `config` (jsonb) y `n_episodes`
+Legibles con `anon` (`lectura_publica`) pero **el front no las usa**: lee las vistas. Columnas en AGENTS.md §6; la fila de `runs` lleva además `config` (jsonb) y `n_episodes`
 (los episodios **pedidos**, no los reales).
 
 ### 2.8 Totales: recuento sin filas
@@ -290,10 +288,10 @@ Publicación `supabase_realtime`, canal `postgres_changes` sobre el esquema `pub
 | `events` | `INSERT` | `episode_id=eq.{id}` | fila de `events` (§2.6) |
 | `pallet_states` | `INSERT` | `episode_id=eq.{id}` | fila de `pallet_states` (§2.5) |
 | `episodes` | `UPDATE` | `id=eq.{id}` | fila de `episodes` **en crudo**, no de la vista: sin `git_sha`, `oracle`, ni columnas derivadas |
-| `episodes` | `INSERT` | *(sin filtro)* | fila en crudo; Live solo reacciona si `status` es `running` |
+| `episodes` | `INSERT` | *(sin filtro)* | fila en crudo. Es lo que hace que Live se entere **al instante** de que arranca un episodio (`useRunningEpisodeRealtime`, canal `live-episodes`): no usa el payload, vuelve a preguntar cuál está `running`. El sondeo de 5 s queda de red de seguridad |
 | `snapshots` | `INSERT` | `episode_id=eq.{id}` | fila de `snapshots` (§3.2) |
 
-Por eso, ante un `UPDATE` de `episodes` Live vuelve a consultar la vista en vez de usar el payload.
+Por eso, ante un `UPDATE` de `episodes` Live vuelve a consultar la vista en vez de usar el payload. Con el `UPDATE` que cierra un episodio, Live **no** lo retira al instante: lo mantiene 10 s con su resultado («Terminado») y solo entonces, si no ha arrancado otro, pasa a «No hay ninguna ejecución en directo».
 
 La suscripción sin filtro es aparte y hace falta: las otras tres van filtradas al episodio que se está
 enseñando, así que un episodio **nuevo** no despertaría a nadie y la pantalla se quedaría en el anterior
