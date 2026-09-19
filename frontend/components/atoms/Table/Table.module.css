@@ -1,6 +1,6 @@
-/* Con `--table-max` la tabla scrollea por dentro y la cabecera se queda arriba; sin él,
-   crece con su contenido. */
-.scroll { overflow: auto; min-height: 0; max-height: var(--table-max, none); }
+/* Scrollea por dentro y la cabecera se queda arriba. Si el padre es una columna flex de
+   altura acotada, ocupa lo que sobra; si no, crece con su contenido. */
+.scroll { flex: 1 1 auto; overflow: auto; min-height: 0; }
 .table { width: 100%; border-collapse: collapse; font-size: 14px; }
 
 .th, .td { white-space: nowrap; padding: 0 12px; }

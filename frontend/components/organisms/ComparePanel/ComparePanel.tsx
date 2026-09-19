@@ -11,7 +11,7 @@ export function ComparePanel({ pair }: { pair: ComparePair | null }) {
   const view = buildComparison(pair);
 
   return (
-    <Card>
+    <Card className={styles.card}>
       <div className={styles.header}>
         <Text variant="label" tone="muted">Comparativa</Text>
 
@@ -35,16 +35,18 @@ export function ComparePanel({ pair }: { pair: ComparePair | null }) {
         {view.kind === "blocked" && <Badge tone="bad">No comparable</Badge>}
       </div>
 
-      {view.kind === "empty" && (
-        <InfoMessage title="Selecciona 2 ejecuciones para compararlas">
-          <Text tone="muted">Marca la casilla de la primera columna en dos filas de la tabla.</Text>
-        </InfoMessage>
-      )}
-      {view.kind === "blocked" && <CompareBlocked blockers={view.blockers} />}
-      {view.kind === "valid" && (
-        <CompareResult deltas={view.deltas} failuresTitle={view.failuresTitle}
-                       bars={view.bars} legend={view.legend} />
-      )}
+      <div className={styles.body}>
+        {view.kind === "empty" && (
+          <InfoMessage title="Selecciona 2 ejecuciones para compararlas">
+            <Text tone="muted">Marca la casilla de la primera columna en dos filas de la tabla.</Text>
+          </InfoMessage>
+        )}
+        {view.kind === "blocked" && <CompareBlocked blockers={view.blockers} />}
+        {view.kind === "valid" && (
+          <CompareResult deltas={view.deltas} failuresTitle={view.failuresTitle}
+                         bars={view.bars} legend={view.legend} />
+        )}
+      </div>
     </Card>
   );
 }

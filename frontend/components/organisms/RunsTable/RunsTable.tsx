@@ -2,6 +2,7 @@ import type { Run } from "@/lib/supabase";
 import { Card, Table, Th } from "../../atoms";
 import { InfoMessage } from "../../molecules";
 import { RunRow } from "../RunRow";
+import styles from "./RunsTable.module.css";
 import { buildRows } from "./RunsTable.helper";
 
 type Props = {
@@ -15,7 +16,7 @@ type Props = {
 export function RunsTable({ runs, selectedIds, onToggle }: Props) {
   if (!runs.length) {
     return (
-      <Card>
+      <Card className={styles.card}>
         <InfoMessage title="Ninguna ejecución coincide con los filtros">
           Prueba a quitar alguno de ellos.
         </InfoMessage>
@@ -24,7 +25,7 @@ export function RunsTable({ runs, selectedIds, onToggle }: Props) {
   }
 
   return (
-    <Card>
+    <Card className={styles.card}>
       <Table>
         <thead>
           <tr>

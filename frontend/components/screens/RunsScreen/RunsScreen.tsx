@@ -37,12 +37,16 @@ export function RunsScreen() {
 
   return (
     <main className={styles.screen}>
-      <FilterBar filters={s.filters} options={s.options} selectedCount={s.selectedIds.length}
-                 onChange={s.onFilter} onClear={s.onClear} />
+      <div className={styles.filters}>
+        <FilterBar filters={s.filters} options={s.options} selectedCount={s.selectedIds.length}
+                   onChange={s.onFilter} onClear={s.onClear} />
+      </div>
       <div className={styles.table}>
         <RunsTable runs={s.visibleRuns} selectedIds={s.selectedIds} onToggle={s.onToggle} />
       </div>
-      <ComparePanel pair={s.comparePair} />
+      <div className={styles.compare}>
+        <ComparePanel pair={s.comparePair} />
+      </div>
     </main>
   );
 }
