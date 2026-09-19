@@ -25,7 +25,7 @@ export type SideViewModel = {
 
 /** El eje vertical arranca en la superficie del palé (z = 0); el palé se dibuja debajo. */
 export function buildSideView(
-  placements: Placement[], state: PalletState | null, height = 300,
+  placements: Placement[], state: PalletState | null, height = 290,
 ): SideViewModel {
   const items = drawable(placements);
   const top = loadHeight(items);

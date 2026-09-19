@@ -1,9 +1,10 @@
 .row {
   list-style: none;
-  min-height: 52px;
+  min-height: 38px;
   padding: 0 28px;
+  font-size: 13px;
   display: grid;
-  grid-template-columns: 72px 20px 110px minmax(90px, 1fr) minmax(0, 1.4fr);
+  grid-template-columns: 72px 20px 110px minmax(90px, auto) minmax(0, 1fr);
   align-items: center;
   column-gap: 14px;
 }
@@ -13,5 +14,5 @@
 /* Estrecho: se suelta la columna de detalle bajo el objetivo en vez de recortarla. */
 @media (max-width: 720px) {
   .row { grid-template-columns: 60px 20px 1fr; padding: 8px 16px; row-gap: 2px; }
-  .detail { grid-column: 3; text-align: left; }
+  .target, .detail { grid-column: 3; text-align: left; }
 }

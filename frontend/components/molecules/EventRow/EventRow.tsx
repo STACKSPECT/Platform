@@ -22,7 +22,7 @@ export function EventRow({
       <Text variant="num" tone="faint">{time}</Text>
       <Text tone={iconTone}><Icon name={icon} /></Text>
       <Text tone={failed ? "bad" : "default"}>{label}</Text>
-      <Text variant="mono" tone="muted" truncate>{target}</Text>
+      <Text variant="mono" tone="muted" truncate className={styles.target}>{target}</Text>
       <Text variant="mono" tone={failed ? "bad" : "muted"} truncate className={styles.detail}>
         {detail}
       </Text>
