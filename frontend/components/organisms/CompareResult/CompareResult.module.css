@@ -1,6 +1,6 @@
 .result {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) minmax(0, 3.4fr);
+  grid-template-columns: minmax(250px, 1fr) minmax(300px, 1fr) minmax(0, 3fr);
   align-items: stretch;
 }
 .column, .failures { padding: 36px 32px; border-right: 1px solid var(--border-soft); }

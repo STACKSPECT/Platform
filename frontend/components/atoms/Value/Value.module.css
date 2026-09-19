@@ -9,6 +9,7 @@
 .unit {
   font-family: var(--font-plex-mono), ui-monospace, monospace;
   color: var(--text-3);
+  white-space: nowrap;
 }
 
 .md .num { font-size: 24px; }  .md .unit { font-size: 13px; }

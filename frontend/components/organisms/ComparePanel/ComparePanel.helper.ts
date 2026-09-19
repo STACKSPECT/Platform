@@ -79,13 +79,20 @@ function barOf(run: Run, rows: FailureBreakdownRow[] | undefined): BarView {
   };
 }
 
+/** `comparability()` devuelve la tarea como identificador; en pantalla va en castellano. */
+function translate(b: Blocker): Blocker {
+  return b.field === "TAREA"
+    ? { ...b, a: TASK_TEXT[b.a] ?? b.a, b: TASK_TEXT[b.b] ?? b.b }
+    : b;
+}
+
 export function buildComparison(pair: ComparePair | null): ComparisonView {
   if (!pair) return { kind: "empty" };
   const [newer, base] = newerFirst(pair.runs);
   const header = { newer: runName(newer), base: runName(base) };
 
   const blockers = comparability(newer, base);
-  if (blockers.length) return { kind: "blocked", header, blockers };
+  if (blockers.length) return { kind: "blocked", header, blockers: blockers.map(translate) };
 
   const bars = [barOf(newer, pair.failures[newer.id]), barOf(base, pair.failures[base.id])];
   const seen = new Set<string>();

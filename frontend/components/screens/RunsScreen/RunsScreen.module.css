@@ -1,0 +1,14 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 32px;
+}
+
+/* La lista scrollea por dentro: con decenas de ejecuciones, la comparativa tiene que
+   quedar a la vista sin bajar hasta el final. */
+.table { --table-max: 46vh; }
+
+@media (max-width: 860px) {
+  .screen { padding: 16px; }
+}

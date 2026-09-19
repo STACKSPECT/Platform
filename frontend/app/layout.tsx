@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, IBM_Plex_Sans_Condensed } from "next/font/google";
 import "./globals.css";
-import TopBar from "@/components/TopBar";
+import { AppHeader } from "@/components/screens/AppHeader";
 import { Providers } from "./providers";
 
 /* Las tres voces del diseño, cada una con su trabajo:
@@ -40,7 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body>
         <Providers>
-          <TopBar />
+          <AppHeader />
           {children}
         </Providers>
       </body>

@@ -17,3 +17,4 @@ export { BlockerTable } from "./BlockerTable";
 export { InfoMessage } from "./InfoMessage";
 export { ColorLegendItem } from "./ColorLegendItem";
 export { ToggleField } from "./ToggleField";
+export { NavTab } from "./NavTab";

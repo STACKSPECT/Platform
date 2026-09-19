@@ -1,4 +1,6 @@
-.scroll { overflow-x: auto; min-height: 0; }
+/* Con `--table-max` la tabla scrollea por dentro y la cabecera se queda arriba; sin él,
+   crece con su contenido. */
+.scroll { overflow: auto; min-height: 0; max-height: var(--table-max, none); }
 .table { width: 100%; border-collapse: collapse; font-size: 14px; }
 
 .th, .td { white-space: nowrap; padding: 0 12px; }
@@ -13,7 +15,12 @@
   letter-spacing: 0.13em;
   text-transform: uppercase;
   color: var(--text-3);
-  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+  /* Sombra y no borde: con border-collapse el borde no viaja con la cabecera pegajosa. */
+  box-shadow: inset 0 -1px 0 var(--border);
 }
 .td { height: 46px; border-bottom: 1px solid var(--border-soft); }
 
