@@ -37,7 +37,7 @@ backend/                 SQL + SDK. Supabase ES el backend; no hay servidor prop
   pyproject.toml
 
 frontend/                Next.js 16. Lee Supabase con la clave anon, bajo RLS.
-  app/                     rutas: / (Live), /runs, /runs/[id], /runs/[id]/[seed]
+  app/                     rutas: / (Resumen), /live, /runs, /runs/[id], /runs/[id]/[seed]
   api/clients/             una función por endpoint de PostgREST
   api/hooks/               los mismos, envueltos en TanStack Query
   components/              atoms / organisms / screens
@@ -264,12 +264,18 @@ evolución en vez de borrón y cuenta nueva.
   `end()` además de `episode()`. **La simulación tiene que llamarlas** o Live enseñará
   el palé ya montado: `episode()` sube todo de golpe y entonces no hay fila `running`
   ni `UPDATE` a los que Realtime pueda reaccionar.
-- **Front:** `/` (Live) y `/runs` (Ejecuciones), sobre TanStack Query, con Realtime y
+- **Front:** `/` (**Resumen** de evolución, la pantalla principal), `/live`, `/runs`
+  (Ejecuciones) y el detalle de una ejecución, sobre TanStack Query, con Realtime y
   los tres estados no felices. El tamaño del palé sale de `config.pallet_size_m` vía
   `palletSize()`: **no** se dibuja siempre a 1200x800, porque el palé real puede ser una
   maqueta a escala y entonces todas las cotas saldrían mal por el mismo factor.
 - **Detalle de ejecución:** `/runs/[id]` y `/runs/[id]/[seed]` ya están, sobre el mismo
   `EpisodeDashboard` que Live: cambia de dónde salen los datos, no cómo se ven.
+- **Resumen:** una tarjeta por tarea y nivel, con las métricas de `v_run_summary` (éxito,
+  ciclo, estabilidad, error) y su cambio desde la primera ejecución. Aplica la misma regla que
+  la comparativa (`comparability()`): la curva usa solo ejecuciones comparables entre sí, que
+  en un nivel son las del rango de semillas más usado; las demás se dejan fuera y se cuentan.
+  Medidos, oracle y sembrados **no se mezclan** nunca en una serie.
 
 Aviso de Next 16: `params` es una Promise (`const { id } = await params`) y existen los
 tipos globales `PageProps<'/runs/[id]'>`. Hay documentación offline en

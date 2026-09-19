@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   useEpisodeDetail, useEpisodeRealtime, useEpisodes, useRunningEpisode,
   useRunningEpisodeRealtime, useSnapshots,
@@ -7,9 +7,7 @@ import { configured } from "@/lib/supabase";
 import { useHold } from "@/hooks/useHold";
 import { useNow } from "@/hooks/useNow";
 import { buildEpisodeView } from "../../organisms/EpisodeDashboard";
-import {
-  HOLD_MS, LIVE_POLL_MS, isStale, staleDetail, staleMessage,
-} from "./LiveScreen.helper";
+import { HOLD_MS, LIVE_POLL_MS, staleDetail, staleness } from "./LiveScreen.helper";
 
 /** Une los datos de Live en un solo modelo para la pantalla. Aquí no se dibuja nada.
  *
@@ -40,13 +38,12 @@ export function useLiveScreen() {
   }, [holding, refetchEpisodes]);
 
   const detail = useEpisodeDetail(episode?.id);
-  const { lastReceivedAt, subscribed } = useEpisodeRealtime(episode?.id);
+  const { lastReceivedAt, channelError } = useEpisodeRealtime(episode?.id);
   const snapshots = useSnapshots(episode?.id);
 
   const now = useNow(episode ? 1000 : null);
-  // Hasta que llegue algo por Realtime, la referencia es la de cuando se montó la pantalla.
-  const [mountedAt] = useState(() => Date.now());
-  const lastSignalAt = lastReceivedAt ?? mountedAt;
+  // Sin referencia (el canal aún no se ha suscrito a este episodio) no se puede acusar de silencio.
+  const lastSignalAt = lastReceivedAt;
 
   const retry = () => { void live.refetch(); };
 
@@ -59,20 +56,21 @@ export function useLiveScreen() {
   }
   if (!episode) return { state: "idle" as const, retry };
 
-  // Con un episodio en pantalla, un fallo de red no lo vacía: se congela y se avisa. El latido
-  // solo vigila lo que corre: uno terminado no manda datos, y eso no es una conexión perdida.
-  const fetchFailed = live.isError || detail.isError;
-  const stale = isStale({
-    running: episode.status === "running", fetchFailed, lastSignalAt, now,
+  // Con un episodio en pantalla, un fallo de red no lo vacía: se congela y se avisa. El silencio
+  // solo se vigila en lo que corre: uno terminado no manda datos, y eso no es un fallo.
+  const kind = staleness({
+    running: episode.status === "running",
+    fetchFailed: live.isError || detail.isError, channelError, lastSignalAt, now,
   });
+  const stale = kind !== null;
 
   return {
     state: "ready" as const,
     retry,
     stale,
+    silent: kind === "silent",
     finished: holding,
-    staleMessage: staleMessage({ subscribed, fetchFailed }),
-    staleDetail: staleDetail(lastSignalAt),
+    staleDetail: staleDetail(kind, lastSignalAt),
     view: buildEpisodeView({
       episode,
       placements: detail.placements.data ?? [],

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export type IconName = "check" | "arrowDown" | "crosshair" | "circleDot" | "wave" | "x" | "flag" | "chevronsUpDown" | "sun" | "moon" | "chevronLeft" | "chevronRight" | "arrowLeft";
+export type IconName = "check" | "arrowDown" | "crosshair" | "circleDot" | "wave" | "x" | "flag" | "chevronsUpDown" | "sun" | "moon" | "chevronLeft" | "chevronRight" | "arrowLeft" | "arrowUp" | "minus" | "info";
 
 /* Trazos de 16×16. Iconos de línea, sin relleno: ninguno lleva color propio, heredan
    `currentColor` del que los use. */
@@ -18,6 +18,9 @@ const PATHS: Record<IconName, ReactNode> = {
   chevronLeft: <path d="M10 3.5 5.5 8l4.5 4.5" />,
   chevronRight: <path d="M6 3.5 10.5 8 6 12.5" />,
   arrowLeft: <path d="M13 8H3M7 4 3 8l4 4" />,
+  arrowUp: <path d="M8 13.5v-10M4 7.5l4-4 4 4" />,
+  minus: <path d="M3.5 8h9" />,
+  info: (<><circle cx="8" cy="8" r="6" /><path d="M8 7.2v3.6" /><circle cx="8" cy="4.9" r="0.55" fill="currentColor" /></>),
 };
 
 /** Decorativo: el significado lo lleva el texto de al lado, no el icono. */

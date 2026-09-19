@@ -20,7 +20,7 @@ export function CompareResult({ deltas, failuresTitle, bars, legend }: Props) {
       <section className={styles.failures}>
         <Text variant="label" tone="muted">{failuresTitle}</Text>
         <div className={styles.bars}>
-          {bars.map((b) => <FailureStackBar key={b.label} {...b} />)}
+          {bars.map(({ key, ...b }) => <FailureStackBar key={key} {...b} />)}
         </div>
         <div className={styles.legend}>
           {legend.map((l) => <ColorLegendItem key={l.key} label={l.label} color={l.color} />)}

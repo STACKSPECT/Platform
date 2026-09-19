@@ -13,5 +13,6 @@
 .spacer { flex-grow: 1; }
 
 @media (max-width: 720px) {
-  .bar { gap: 12px; padding: 0 16px; }
+  .bar { gap: 8px; padding: 0 16px; }
+  .nav { gap: 0; }
 }

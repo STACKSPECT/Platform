@@ -12,6 +12,7 @@
 }
 .neutral   { color: var(--text-3); }
 .ok        { color: var(--ok); background: var(--ok-fill); }
+.warn      { color: var(--warn); background: var(--warn-fill); }
 .bad       { color: var(--bad); background: var(--bad-fill-soft); }
 .oracle    { color: var(--oracle); }
 .synthetic { color: var(--synthetic); }

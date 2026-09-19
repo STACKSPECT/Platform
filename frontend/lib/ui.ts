@@ -86,6 +86,28 @@ export function signedNumber(n: number, digits = 0): string {
   return `${sign}${rounded.toFixed(digits)}`;
 }
 
+/** Cómo se lee un cambio: verde si mejora, rojo si empeora, gris si no cambia. Un cambio que se
+ *  redondea a cero al enseñarlo no es ni lo uno ni lo otro. `lowerIsBetter` para lo que se
+ *  quiere que baje (tiempo, error). */
+export function changeTone(
+  diff: number, digits: number, lowerIsBetter: boolean,
+): "ok" | "bad" | "muted" {
+  if (Number(Math.abs(diff).toFixed(digits)) === 0) return "muted";
+  return (lowerIsBetter ? diff < 0 : diff > 0) ? "ok" : "bad";
+}
+
+/** Primera letra en mayúscula: «paletizado» → «Paletizado». */
+export function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** «19 sep». */
+export function shortDate(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("es-ES", { day: "numeric", month: "short" })
+    .replace(".", "");
+}
+
 /** Parte una cantidad ya formateada ("31 mm") en número y unidad, para pintarlas con
  *  tamaños distintos. No convierte nada: solo trocea lo que devuelven mm/pct/seconds. */
 export function splitQuantity(formatted: string): { value: string; unit: string } {

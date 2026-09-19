@@ -1,6 +1,8 @@
 /** Las rutas de la aplicación, en un solo sitio: quien enlaza no construye la URL a mano. */
 export const routes = {
-  live: "/",
+  /** Resumen de evolución: la pantalla principal. */
+  dashboard: "/",
+  live: "/live",
   runs: "/runs",
   /** Detalle de una ejecución: por defecto, su último episodio. */
   run: (runId: string) => `/runs/${runId}`,

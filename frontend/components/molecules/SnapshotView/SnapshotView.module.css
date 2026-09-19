@@ -1,6 +1,39 @@
+/* El hueco que deja el panel. Es contenedor de tamaño: la foto se dimensiona con sus medidas
+   (cqw/cqh), así que crece hasta tocar un borde del hueco sin pasarse ni deformarse. */
+.area {
+  flex: 1;
+  align-self: stretch;
+  min-height: 0;
+  container-type: size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .shot {
+  position: relative;
+  margin: 0;
+  width: min(100cqw, calc(100cqh * var(--ratio)));
+  aspect-ratio: var(--ratio);
+  overflow: hidden;
+  background: var(--row-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-2);
+}
+.image {
+  display: block;
   width: 100%;
-  height: auto;
-  max-height: 100%;
-  object-fit: contain;
+  height: 100%;
+  object-fit: cover;
+}
+/* Dice de dónde sale la imagen: pequeña y en una esquina, sobre la propia foto. */
+.tag {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 2px 9px;
+  font-size: 11px;
+  color: var(--text-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
 }
