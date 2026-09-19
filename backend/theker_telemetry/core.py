@@ -81,6 +81,19 @@ def _json_safe(value: Any) -> Any:
 # Cliente PostgREST
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _aligned(rows: Sequence[dict]) -> list[dict]:
+    """Iguala las claves de todas las filas de un lote, rellenando con None.
+
+    PostgREST rechaza un INSERT múltiple cuyas filas no tengan exactamente las mismas
+    claves ("All object keys must match"): no puede construir una sola sentencia. Y es
+    de lo más normal que no las tengan —un evento de percepción no lleva `package_id` y
+    uno de colocación sí—, así que se alinean aquí y no en cada sitio que inserta.
+    """
+    rows = list(rows)
+    keys = {k for row in rows for k in row}
+    return [{k: row.get(k) for k in keys} for row in rows]
+
+
 class Supabase:
     """Lo mínimo de PostgREST que necesitamos: insertar filas y leerlas de vuelta."""
 
@@ -142,7 +155,7 @@ class Supabase:
             return []
         request = urllib.request.Request(
             f"{self.base}/{table}",
-            data=json.dumps(_json_safe(list(rows))).encode("utf-8"),
+            data=json.dumps(_json_safe(_aligned(rows))).encode("utf-8"),
             method="POST",
             headers=self._headers(
                 "return=representation" if returning else "return=minimal"),
