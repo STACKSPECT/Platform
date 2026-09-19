@@ -26,7 +26,10 @@ export default function LivePage() {
   const [loading, setLoading] = useState(true);
   const [lastSeen, setLastSeen] = useState<Date | null>(null);
   const [stale, setStale] = useState(false);
-  const lastRef = useRef<number>(Date.now());
+  /* null = todavía no ha llegado nada. No se inicializa con Date.now() porque leer el
+     reloj durante el render es impuro: al re-renderizar daría un valor distinto y el
+     latido acabaría midiendo contra un instante que nunca ocurrió. */
+  const lastRef = useRef<number | null>(null);
 
   const load = useCallback(async () => {
     if (!configured) { setLoading(false); return; }
@@ -47,6 +50,10 @@ export default function LivePage() {
     }
   }, []);
 
+  /* Carga inicial. La regla avisa de que `load` toca estado dentro del efecto, y aquí
+     es justo lo que se quiere: sincronizar con Supabase al montar. No hay cascada de
+     renders porque `load` tiene dependencias vacías y solo se ejecuta una vez. */
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void load(); }, [load]);
 
   /* Realtime: esta vista se alimenta de estas suscripciones y de nada más. */
@@ -83,7 +90,9 @@ export default function LivePage() {
   useEffect(() => {
     const t = setInterval(() => {
       const running = episode?.status === "running";
-      setStale(Boolean(running) && Date.now() - lastRef.current > HEARTBEAT_MS);
+      const visto = lastRef.current;
+      setStale(Boolean(running) && visto !== null
+        && Date.now() - visto > HEARTBEAT_MS);
     }, 1000);
     return () => clearInterval(t);
   }, [episode]);
