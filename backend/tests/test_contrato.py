@@ -20,6 +20,7 @@ Sin `DATABASE_URL` se salta entero.
 
 import os
 import re
+import shutil
 import subprocess
 from pathlib import Path
 from urllib.parse import urlparse
@@ -68,6 +69,12 @@ def esquema():
     DATABASE_URL a un Supabase de verdad, esto no puede llevarse por delante los datos.
     Por si acaso, además, solo se habla con localhost.
     """
+    # Con DATABASE_URL puesto y sin psql, lo que toca es decirlo una vez y claro, no
+    # soltar veinte trazas idénticas de FileNotFoundError.
+    assert shutil.which("psql"), (
+        "hay DATABASE_URL pero no encuentro psql. En Debian/Ubuntu: "
+        "apt-get install -y postgresql-client")
+
     host = urlparse(DSN).hostname or ""
     assert host in ("localhost", "127.0.0.1", "::1", "db", "postgres"), (
         f"DATABASE_URL apunta a {host!r}: esto crea y borra objetos, "
