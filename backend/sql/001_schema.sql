@@ -140,81 +140,19 @@ create index if not exists idx_episodes_failure   on episodes (failure) where fa
 create index if not exists idx_placements_episode on placements (episode_id, seq);
 create index if not exists idx_pallet_episode     on pallet_states (episode_id, after_seq);
 create index if not exists idx_events_episode     on events (episode_id, seq);
+-- Live pregunta "¿hay algo corriendo?" en cada recarga (API.md §2.2). Parcial porque
+-- lo normal es que no haya ninguno: ocupa casi nada y la consulta deja de barrer la
+-- tabla entera de episodios.
+create index if not exists idx_episodes_running   on episodes (started_at desc) where status = 'running';
 
--- ─────────────────────────────────────────────────────────────────────────────
--- Vistas de resumen. La interfaz NO agrega nada en el cliente: lo que pinta en
--- una tabla o en un KPI sale ya calculado de aquí.
--- ─────────────────────────────────────────────────────────────────────────────
-
-create or replace view v_run_summary as
-select
-  r.id,
-  r.started_at,
-  r.ended_at,
-  r.task,
-  r.level,
-  r.git_sha,
-  r.oracle,
-  r.motion_speed,
-  r.label,
-  count(e.id)                                  as episodes,
-  count(*) filter (where e.status = 'success') as successes,
-  -- nullif evita dividir por cero en un run que aún no ha escrito ningún episodio
-  round((count(*) filter (where e.status = 'success'))::numeric
-        / nullif(count(e.id), 0), 4)           as success_rate,
-  sum(e.n_placed)                              as objects_placed,
-  sum(e.n_objects)                             as objects_total,
-  round(sum(e.n_placed)::numeric
-        / nullif(sum(e.n_objects), 0), 4)      as placement_rate,
-  round(avg(e.duration_s)::numeric, 3)         as mean_duration_s,
-  -- tiempo de ciclo: segundos por paquete efectivamente colocado
-  round(sum(e.duration_s)::numeric
-        / nullif(sum(e.n_placed), 0), 3)       as cycle_time_s,
-  round(avg(e.score)::numeric, 4)              as mean_score
-from runs r
-left join episodes e on e.run_id = r.id
-group by r.id;
-
-create or replace view v_episode_summary as
-select
-  e.id,
-  e.run_id,
-  e.seed,
-  e.task,
-  e.level,
-  e.status,
-  e.duration_s,
-  e.n_objects,
-  e.n_placed,
-  e.score,
-  e.failure,
-  e.metrics,
-  r.git_sha,
-  r.oracle,
-  r.motion_speed,
-  -- último estado del palé: con qué margen de estabilidad acabó el montón
-  (select ps.stability_margin_m
-     from pallet_states ps
-    where ps.episode_id = e.id
-    order by ps.after_seq desc
-    limit 1)                                   as final_stability_m,
-  (select ps.fill_ratio
-     from pallet_states ps
-    where ps.episode_id = e.id
-    order by ps.after_seq desc
-    limit 1)                                   as final_fill_ratio,
-  (select round(avg(p.error_xy_m)::numeric, 5)
-     from placements p
-    where p.episode_id = e.id and p.placed)    as mean_error_xy_m
-from episodes e
-join runs r on r.id = e.run_id;
-
--- Causas de fallo por run: alimenta directamente FailureBreakdown.
-create or replace view v_failure_breakdown as
-select run_id, failure, count(*) as n
-from episodes
-where failure is not null
-group by run_id, failure;
+-- Las vistas de resumen NO se definen aquí, sino en 002_design.sql.
+--
+-- Estuvieron en este fichero y se quitaron: 002 las tira con `drop ... cascade` y las
+-- rehace con más columnas, así que definirlas aquí solo servía para que 002 las
+-- borrase. Peor aún, volver a pegar 001 DESPUÉS de 002 fallaba con "cannot drop
+-- columns from view", porque `create or replace view` no puede quitar columnas. Los
+-- dos ficheros prometen en su cabecera que se pueden repegar: ahora es verdad en
+-- cualquier orden.
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- RLS. La clave `anon` viaja al navegador: sin políticas esto sería un DELETE
@@ -239,11 +177,6 @@ begin
   end loop;
 end $$;
 
--- Las vistas ejecutan con los permisos de quien consulta, así que heredan el RLS
--- de sus tablas base. Se marca explícitamente por si el default cambia.
-alter view v_run_summary       set (security_invoker = on);
-alter view v_episode_summary   set (security_invoker = on);
-alter view v_failure_breakdown set (security_invoker = on);
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Realtime. La vista Live se alimenta de estas suscripciones y de nada más.

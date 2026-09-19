@@ -47,6 +47,11 @@ select
   e.task,
   e.level,
   e.status,
+  -- Live ordena por started_at para quedarse con el último episodio cuando no hay
+  -- ninguno en curso (API.md §2.2). Sin proyectarlas aquí esa consulta devuelve
+  -- `400 42703` y la pantalla cae a "todavía no hay episodios" delante del jurado.
+  e.started_at,
+  e.ended_at,
   e.duration_s,
   e.n_objects,
   e.n_placed,
