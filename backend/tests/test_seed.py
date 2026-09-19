@@ -11,12 +11,12 @@ import subprocess
 import sys
 from pathlib import Path
 
-from seed.palletizing import (
-    CAMPAIGN,
-    PACKAGES_BY_LEVEL,
+from seed.palletizing import CAMPAIGN, PACKAGES_BY_LEVEL, build_episode, episode_seed
+
+# La geometría ya no se define en el sembrado: vive en el paquete, que es de donde la
+# importan también la simulación y los guiones de ejemplo.
+from theker_telemetry.pallet import (
     TRANSPORT_ACCEL_G,
-    build_episode,
-    episode_seed,
     stability_margin,
     support_polygon,
 )

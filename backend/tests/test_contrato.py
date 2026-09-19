@@ -94,8 +94,8 @@ def esquema():
 @pytest.fixture(scope="module", autouse=True)
 def aplicado(esquema):
     """El esquema, ya aplicado, para el resto de los tests."""
-    psql_file(SQL_DIR / "001_schema.sql")
-    psql_file(SQL_DIR / "002_design.sql")
+    for fichero in sorted(SQL_DIR.glob("*.sql")):
+        psql_file(fichero)
 
 
 # ── 1. el esquema aplica, y aplica dos veces ─────────────────────────────────
@@ -104,9 +104,10 @@ def test_los_dos_ficheros_aplican_y_son_idempotentes():
     """Las cabeceras de 001 y 002 prometen que se pueden volver a pegar enteros. Y en
     cualquier orden: 001 después de 002 fallaba con 'cannot drop columns from view'
     mientras 001 definía vistas que 002 rehacía."""
-    for fichero in ("001_schema.sql", "002_design.sql",
-                    "001_schema.sql", "002_design.sql"):
-        psql_file(SQL_DIR / fichero)
+    ficheros = sorted(SQL_DIR.glob("*.sql"))
+    assert ficheros, "no hay ningún .sql que aplicar"
+    for fichero in [*ficheros, *ficheros]:
+        psql_file(fichero)
 
 
 # ── 2. lo que el front consulta tiene que existir ────────────────────────────
@@ -307,6 +308,11 @@ def test_todo_lo_legible_tiene_rls_y_politica_de_lectura():
     assert psql("select tablename from pg_tables "
                 f"where schemaname = '{ESQUEMA}' and not rowsecurity") == ""
 
+    # Sin lista a fuego: cualquier tabla nueva queda cubierta por este test el día que
+    # se añada, que es justo cuando alguien se puede olvidar de darle su política.
+    tablas = set(psql(
+        f"select tablename from pg_tables where schemaname = '{ESQUEMA}'").splitlines())
     con_politica = set(psql(
         f"select tablename from pg_policies where schemaname = '{ESQUEMA}'").splitlines())
-    assert con_politica == {"runs", "episodes", "placements", "pallet_states", "events"}
+    assert tablas, "el esquema no tiene tablas"
+    assert tablas - con_politica == set(), f"sin política de lectura: {tablas - con_politica}"

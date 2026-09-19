@@ -5,8 +5,16 @@ import { signedMm, stabilityState } from "@/lib/ui";
 
 /* Palé europeo, en metros. El diseño insiste en dibujarlo a escala real y con sus
    medidas: un esquemático genérico no transmite que esto modela un proceso físico. */
+/* Palé europeo, y solo el valor POR DEFECTO. El palé de verdad puede ser una maqueta a
+   escala —la pinza del Panda abre 80 mm y un europeo es inagarrable—, así que la medida
+   viaja con la ejecución en `config.pallet_size_m` y estas dos constantes son lo que se
+   usa cuando no llega. Dibujar 1200x800 un palé de 210x140 deja TODAS las cotas mal por
+   el mismo factor, y el diseño exige que el palé se pinte a escala real con sus medidas. */
 export const PALLET_X = 1.2;
 export const PALLET_Y = 0.8;
+
+export type PalletSize = readonly [number, number];
+export const PALLET_DEFAULT: PalletSize = [PALLET_X, PALLET_Y];
 
 /* ── vista cenital ──────────────────────────────────────────────────────── */
 
@@ -18,18 +26,21 @@ export const PALLET_Y = 0.8;
  * nadie se la explique, tiene que ser ésta. Por eso la cruz lleva el color del estado
  * de estabilidad y el polígono se dibuja también cuando el montón va bien.
  */
-export function PalletTopView({ placements, state, height = 380 }: {
+export function PalletTopView({ placements, state, height = 380,
+                                size = PALLET_DEFAULT }: {
   placements: Placement[];
   state: PalletState | null;
   height?: number;
+  size?: PalletSize;
 }) {
   const pad = 26;
-  const scale = (height - pad * 2) / PALLET_Y;
-  const w = PALLET_X * scale + pad * 2;
+  const [px, py] = size;
+  const scale = (height - pad * 2) / py;
+  const w = px * scale + pad * 2;
 
   // De metros respecto al centro del palé a píxeles. +Y del mundo sube en pantalla.
-  const X = (x: number) => pad + (x + PALLET_X / 2) * scale;
-  const Y = (y: number) => pad + (PALLET_Y / 2 - y) * scale;
+  const X = (x: number) => pad + (x + px / 2) * scale;
+  const Y = (y: number) => pad + (py / 2 - y) * scale;
 
   const base = placements.filter((p) => p.layer === 1 && p.actual_pose && p.dims_m);
   const support = base.length ? bounds(base) : null;
@@ -40,8 +51,8 @@ export function PalletTopView({ placements, state, height = 380 }: {
   return (
     <svg width="100%" viewBox={`0 0 ${w} ${height}`} role="img"
          aria-label="Vista cenital del palé con el centro de gravedad">
-      <rect x={X(-PALLET_X / 2)} y={Y(PALLET_Y / 2)}
-            width={PALLET_X * scale} height={PALLET_Y * scale}
+      <rect x={X(-px / 2)} y={Y(py / 2)}
+            width={px * scale} height={py * scale}
             fill="none" stroke="var(--border-hard)" strokeWidth={1.5} />
 
       {/* huecos planificados, en trazo fino */}
@@ -103,7 +114,7 @@ export function PalletTopView({ placements, state, height = 380 }: {
       {/* medidas reales: es un criterio de puntuación, no decoración */}
       <text x={pad} y={height - 7} fontSize={9.5} fill="var(--text-5)"
             fontFamily="var(--font-plex-mono), monospace">
-        1200 × 800 mm
+        {Math.round(px * 1000)} × {Math.round(py * 1000)} mm
       </text>
       {margin != null && (
         <text x={w - pad} y={height - 7} textAnchor="end" fontSize={9.5} fill={cogColor}
@@ -132,20 +143,23 @@ function bounds(ps: Placement[]) {
  * estabilidad. Un montón perfectamente centrado puede volcar igual si es demasiado
  * alto, y sin este dibujo esa mitad del problema no se ve.
  */
-export function PalletSideView({ placements, state, height = 275 }: {
+export function PalletSideView({ placements, state, height = 275,
+                                 size = PALLET_DEFAULT }: {
   placements: Placement[];
   state: PalletState | null;
   height?: number;
+  size?: PalletSize;
 }) {
   const pad = 26;
+  const [px] = size;
   const top = placements.reduce(
     (h, p) => Math.max(h, (p.actual_pose?.z ?? 0) + (p.dims_m?.[2] ?? 0) / 2), 0);
   // Un 25 % de aire por encima de la carga para que la cota no toque el borde.
   const zMax = Math.max(top * 1.25, 0.5);
   const scale = (height - pad * 2) / zMax;
-  const w = PALLET_X * scale + pad * 2;
+  const w = px * scale + pad * 2;
 
-  const X = (x: number) => pad + (x + PALLET_X / 2) * scale;
+  const X = (x: number) => pad + (x + px / 2) * scale;
   const Z = (z: number) => height - pad - z * scale;
 
   const cogColor = `var(--${stabilityState(state?.stability_margin_m)})`;
@@ -153,7 +167,7 @@ export function PalletSideView({ placements, state, height = 275 }: {
   return (
     <svg width="100%" viewBox={`0 0 ${w} ${height}`} role="img"
          aria-label="Alzado del palé con la altura del centro de gravedad">
-      <rect x={X(-PALLET_X / 2)} y={Z(0)} width={PALLET_X * scale} height={7}
+      <rect x={X(-px / 2)} y={Z(0)} width={px * scale} height={7}
             fill="var(--border)" />
 
       {placements.map((p) =>

@@ -7,7 +7,8 @@ import {
   type Episode, type PalletState, type Placement, type RunEvent,
 } from "@/lib/supabase";
 import {
-  TASK_TEXT, clockTime, failureText, mm, pct, seconds, signedMm, stabilityState,
+  TASK_TEXT, clockTime, failureText, mm, palletSize, pct, seconds, signedMm,
+  stabilityState,
 } from "@/lib/ui";
 import { PalletSideView, PalletTopView } from "@/components/Pallet";
 import { EventFeed } from "@/components/Episode";
@@ -166,7 +167,8 @@ export default function LivePage() {
               : failed ? `instante del fallo · ${seconds(episode.duration_s)}`
               : `estado final · ${placements.length} paquetes`}
           >
-            <PalletTopView placements={placements} state={last} />
+            <PalletTopView placements={placements} state={last}
+                           size={palletSize(episode)} />
           </Panel>
           <Panel
             title="Alzado"
@@ -176,7 +178,8 @@ export default function LivePage() {
               last?.settle_drift_m ? `deriva ${mm(last.settle_drift_m, 0)}` : null,
             ].filter(Boolean).join(" · ")}
           >
-            <PalletSideView placements={placements} state={last} />
+            <PalletSideView placements={placements} state={last}
+                            size={palletSize(episode)} />
           </Panel>
         </div>
 

@@ -46,6 +46,7 @@ export type Run = {
   motion_speed: number;
   label: string | null;
   description: string | null;
+  config: Record<string, unknown>;
   episodes: number;
   successes: number;
   success_rate: number | null;
@@ -79,6 +80,7 @@ export type Episode = {
   oracle: boolean;
   synthetic: boolean;
   motion_speed: number;
+  config: Record<string, unknown>;
   cycle_time_s: number | null;
   final_stability_m: number | null;
   final_fill_ratio: number | null;

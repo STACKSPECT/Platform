@@ -5,8 +5,9 @@ PostgREST, más los canales Realtime. Este documento sale de `backend/sql/001_sc
 `backend/sql/002_design.sql` y `backend/theker_telemetry/core.py`; las respuestas de ejemplo son
 la forma de las columnas, no capturas de una base real.
 
-Los clientes del front que los consumen están en `frontend/api/clients/` y los hooks en
-`frontend/api/hooks/`.
+Los consume `frontend/lib/supabase.ts` (`fetchRuns`, `fetchRun`, `fetchEpisodes`,
+`fetchEpisode`, `fetchEpisodeDetail`, `fetchLatestEpisode`). La capa `frontend/api/`
+que describía una versión anterior de este documento no llegó a existir.
 
 ## 1. Convenciones
 
@@ -217,18 +218,52 @@ Todo fallo remoto avisa una vez y el episodio sigue: el `episodes.jsonl` en disc
 
 | Método y ruta | Cuerpo | `Prefer` | Respuesta |
 |---|---|---|---|
-| `POST /runs` | `[{ task, level, git_sha, oracle, motion_speed, label, n_episodes }]` | `return=representation` | `201` + `[fila creada]` (de ahí sale `run_id`) |
+| `POST /runs` | `[{ task, level, git_sha, oracle, motion_speed, label, n_episodes, config }]` | `return=representation` | `201` + `[fila creada]` (de ahí sale `run_id`) |
 | `POST /episodes` | `[{ run_id, seed, task, level, status, duration_s, n_objects, n_placed, score, failure, metrics }]` | `return=representation` | `201` + `[fila creada]` (de ahí sale `episode_id`) |
 | `POST /placements` | lote de filas con `episode_id` | `return=minimal` | `201` sin cuerpo |
 | `POST /pallet_states` | ídem | `return=minimal` | `201` sin cuerpo |
 | `POST /events` | ídem | `return=minimal` | `201` sin cuerpo |
-| `PATCH /episodes?id=eq.{uuid}` | `{ status, duration_s, n_placed, score, failure, metrics, ended_at }` | `return=minimal` | `204` sin cuerpo |
+| `PATCH /episodes?id=eq.{uuid}` | `{ status, duration_s, n_placed, score, failure, metrics, ended_at }` — y nada más: `seed`, `task`, `level` y `n_objects` se fijaron en `begin()` | `return=minimal` | `204` sin cuerpo |
 | `PATCH /runs?id=eq.{uuid}` | `{ "ended_at": "now()" }` | `return=minimal` | `204` sin cuerpo |
 
 Restricciones que hacen fallar la escritura: `episodes.failure` fuera del CHECK (`23514`), `unique(run_id, seed)`,
 `unique(episode_id, seq)` en `placements`/`events`, `unique(episode_id, after_seq)` en `pallet_states`.
 `episodes.status` se calcula en el SDK: `success` o `failure`. `git_sha`/`oracle` **no** se guardan por episodio;
 las vistas los recuperan del run.
+
+### 3.1 `runs.config`: el montaje
+
+`jsonb` libre que describe cómo estaba montado el banco. Lo manda `RunLog(config={...})`.
+La clave que la interfaz **necesita** es `pallet_size_m`:
+
+```json
+{ "pallet_size_m": [0.2105, 0.1404], "pallet_scale": 5.7 }
+```
+
+El palé puede ser una maqueta a escala —la pinza del Panda abre 80 mm y un europeo es
+inagarrable—, y sin esto la pantalla lo dibuja a 1200x800 y **todas** las cotas salen mal
+por el mismo factor. Viaja también en `v_episode_summary.config`, porque Live solo tiene
+el episodio en la mano. El front lo lee con `palletSize()` de `lib/ui.ts`, que mira
+`config`, luego `metrics` (donde estuvo mientras la columna no se podía escribir) y por
+último cae al europeo.
+
+### 3.2 `GET /snapshots`: las fotos del palé
+
+`?select=*&episode_id=eq.{uuid}&order=after_seq.asc`
+
+```json
+[{ "id": "…-uuid", "episode_id": "5c1e…-uuid", "after_seq": 3, "view": "top",
+   "url": "https://…/storage/v1/object/public/snapshots/5c1e…/003-top.png",
+   "width": 640, "height": 480, "created_at": "2026-09-19T11:04:04Z" }]
+```
+
+`after_seq` casa con `pallet_states.after_seq`: la foto y el punto de la traza de CoG son
+el mismo instante, que es lo que permite que el scrubber enseñe el palé en el instante `t`.
+`view` ∈ `top | side | iso | camera`. El bucket es público y solo se guarda la URL: los
+binarios no entran en Postgres.
+
+`RunLog.snapshot(after_seq=…, view="top", png=<bytes>)` sube el PNG y rellena `url` sola;
+si ya tienes la URL, pásala y no sube nada.
 
 ## 4. Realtime
 
@@ -241,6 +276,7 @@ Publicación `supabase_realtime`, canal `postgres_changes` sobre el esquema `pub
 | `pallet_states` | `INSERT` | `episode_id=eq.{id}` | fila de `pallet_states` (§2.5) |
 | `episodes` | `UPDATE` | `id=eq.{id}` | fila de `episodes` **en crudo**, no de la vista: sin `git_sha`, `oracle`, ni columnas derivadas |
 | `episodes` | `INSERT` | *(sin filtro)* | fila en crudo; Live solo reacciona si `status` es `running` |
+| `snapshots` | `INSERT` | `episode_id=eq.{id}` | fila de `snapshots` (§3.2) |
 
 Por eso, ante un `UPDATE` de `episodes` Live vuelve a consultar la vista en vez de usar el payload.
 
@@ -278,7 +314,7 @@ Quien produce episodios tiene que llamarlas, o Live seguirá enseñando el palé
 ## 5. Versiones del esquema
 
 `001_schema.sql` crea las tablas, los índices, el RLS y la publicación de Realtime; las tres vistas las
-define solo `002_design.sql`, que además añade
+define solo `002_design.sql`; `003_snapshots.sql` añade las fotos y su bucket. Se pegan en orden. 002 además añade
 `runs.description`, `runs.synthetic`, `pallet_states.settle_drift_m`, `seed_min/max`, medianas, `dominant_failure`,
 `seed_series` y las columnas derivadas de `v_episode_summary`. Con solo 001 aplicado, las respuestas de arriba
 no tienen esos campos.

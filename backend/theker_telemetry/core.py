@@ -174,6 +174,27 @@ class Supabase:
         )
         self._send(request, table)
 
+    def upload_png(self, path: str, data: bytes, *,
+                   bucket: str = "snapshots") -> str:
+        """Sube un PNG a Storage y devuelve su URL pública.
+
+        Storage no es PostgREST: cuelga de /storage/v1 y el cuerpo son los bytes, no
+        JSON. `x-upsert` para que repetir un episodio pise la foto anterior en vez de
+        dar 409 y dejar la traza a medias.
+        """
+        destino = f"{bucket}/{path.lstrip('/')}"
+        cabeceras = {
+            "apikey": self.key,
+            "Authorization": f"Bearer {self.key}",
+            "Content-Type": "image/png",
+            "x-upsert": "true",
+        }
+        request = urllib.request.Request(
+            f"{self.base.removesuffix('/rest/v1')}/storage/v1/object/{destino}",
+            data=data, method="POST", headers=cabeceras)
+        self._send(request, bucket)
+        return f"{self.base.removesuffix('/rest/v1')}/storage/v1/object/public/{destino}"
+
     def delete(self, table: str, match: dict) -> None:
         """DELETE con filtro de igualdad. Lo usa el sembrado para limpiar lo suyo."""
         query = "&".join(f"{k}=eq.{v}" for k, v in match.items())
@@ -230,7 +251,8 @@ class RunLog:
     def __init__(self, repo: Path, *, task: str = "induction", level: int = 0,
                  oracle: bool = False, motion_speed: float = 1.0,
                  tag: str | None = None, label: str | None = None,
-                 n_episodes: int = 0, remote: bool = True):
+                 n_episodes: int = 0, config: dict | None = None,
+                 remote: bool = True):
         self.writer = RunWriter(repo, tag=tag)
         self.directory = self.writer.directory
         self.path = self.writer.path
@@ -255,6 +277,11 @@ class RunLog:
             "motion_speed": float(motion_speed),
             "label": label,
             "n_episodes": int(n_episodes),
+            # Todo lo que describe el montaje y no cabe en una columna. Lo primero
+            # que necesita: `pallet_size_m`. El palé real es una maqueta a escala
+            # —la pinza del Panda abre 80 mm y un europeo es inagarrable— y sin esto
+            # la pantalla lo dibuja a 1200x800 y TODAS las cotas salen mal.
+            "config": _json_safe(config or {}),
         }], returning=True))
         self.run_id = self._id_of(rows)
 
@@ -318,6 +345,18 @@ class RunLog:
     def placement(self, **row: Any) -> None:
         self._push("placements", row)
 
+    def snapshot(self, **row: Any) -> None:
+        """Una foto del palé. `png=<bytes>` la sube a Storage y rellena `url` sola."""
+        png = row.pop("png", None)
+        if png is not None and self.client and self.episode_id:
+            nombre = (f"{self.episode_id}/{row.get('after_seq', 0):03d}"
+                      f"-{row.get('view', 'top')}.png")
+            url = self._try("snapshots", lambda: self.client.upload_png(nombre, png))
+            if not url:
+                return          # sin imagen no hay fila que apunte a ninguna parte
+            row["url"] = url
+        self._push("snapshots", row)
+
     def end(self, result: EpisodeResult) -> None:
         """Cierra el episodio abierto con `begin()`. El disco primero, siempre.
 
@@ -328,8 +367,12 @@ class RunLog:
         if not episode_id or not self.run_id:
             return
 
-        row = episode_row(result, self.run_id)
-        row.pop("run_id")
+        # Solo lo que cambia al cerrar. seed, task, level y n_objects se fijaron en
+        # `begin()` y no se reescriben: mandarlos otra vez ensuciaba el PATCH y
+        # contradecía lo que documenta API.md §3.
+        fila = episode_row(result, self.run_id)
+        row = {k: fila[k] for k in
+               ("status", "duration_s", "n_placed", "score", "failure", "metrics")}
         row["ended_at"] = "now()"
         self._try("episodes", lambda: self.client.patch(
             "episodes", {"id": episode_id}, row))

@@ -62,6 +62,10 @@ select
   r.oracle,
   r.synthetic,
   r.motion_speed,
+  -- El montaje. Live solo tiene el episodio en la mano, así que `pallet_size_m` tiene
+  -- que viajar con él: el palé es una maqueta a escala y sin esto la pantalla lo pinta
+  -- a 1200x800 y todas las cotas salen mal.
+  r.config,
   -- Tiempo de ciclo: el número que entiende una planta. Null si no colocó nada, que
   -- es más honesto que un cero, el cual parecería infinitamente rápido.
   round((e.duration_s / nullif(e.n_placed, 0))::numeric, 3)   as cycle_time_s,
@@ -108,6 +112,7 @@ select
   r.motion_speed,
   r.label,
   r.description,
+  r.config,
   count(e.id)                                                  as episodes,
   count(*) filter (where e.status = 'success')                 as successes,
   round((count(*) filter (where e.status = 'success'))::numeric

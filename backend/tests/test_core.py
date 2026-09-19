@@ -485,3 +485,87 @@ def test_close_sin_remoto_no_hace_nada(tmp_path):
 def test_path_in_ui_apunta_al_run(tmp_path):
     log = log_conectado(tmp_path, ClienteFalso())
     assert log.path_in_ui == "/runs/run-1"
+
+
+# ── config del run y fotos ───────────────────────────────────────────────────
+
+def test_el_run_lleva_su_config(tmp_path, monkeypatch):
+    """Sin `pallet_size_m` la pantalla dibuja el palé a 1200x800, y este es una maqueta
+    a escala: TODAS las cotas saldrían mal por el mismo factor."""
+    cliente = ClienteFalso()
+    monkeypatch.setattr(core.Supabase, "from_env", classmethod(lambda cls, r: cliente))
+
+    core.RunLog(tmp_path, task="palletizing", level=2,
+                config={"pallet_size_m": [0.21, 0.14], "pallet_scale": 5.7})
+
+    fila = cliente.llamadas[0][2][0]
+    assert fila["config"] == {"pallet_size_m": [0.21, 0.14], "pallet_scale": 5.7}
+
+
+def test_sin_config_se_manda_un_objeto_vacio(tmp_path, monkeypatch):
+    """Nunca null: la columna es `not null default '{}'`."""
+    cliente = ClienteFalso()
+    monkeypatch.setattr(core.Supabase, "from_env", classmethod(lambda cls, r: cliente))
+
+    core.RunLog(tmp_path, task="palletizing", level=2)
+
+    assert cliente.llamadas[0][2][0]["config"] == {}
+
+
+def test_snapshot_sube_el_png_y_guarda_la_url(tmp_path):
+    class ConStorage(ClienteFalso):
+        def upload_png(self, path, data, *, bucket="snapshots"):
+            self.llamadas.append(("upload", bucket, path, len(data)))
+            return f"https://x.supabase.co/storage/v1/object/public/{bucket}/{path}"
+
+    cliente = ConStorage()
+    log = log_conectado(tmp_path, cliente)
+    log.begin(seed=1, n_objects=2)
+
+    log.snapshot(after_seq=0, view="top", png=b"\x89PNG-de-mentira", width=640, height=480)
+
+    subida = [c for c in cliente.llamadas if c[0] == "upload"][0]
+    assert subida[1] == "snapshots"
+    assert subida[2] == "episodes-1/000-top.png"
+
+    fila = [c for c in cliente.llamadas if c[1] == "snapshots" and c[0] == "insert"][0][2][0]
+    assert fila["url"].endswith("episodes-1/000-top.png")
+    assert fila["episode_id"] == "episodes-1"
+    assert "png" not in fila          # los bytes no van a la base
+
+
+def test_una_foto_con_url_ya_puesta_no_sube_nada(tmp_path):
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+    log.begin(seed=1)
+
+    log.snapshot(after_seq=0, view="side", url="https://ya.esta/ahi.png")
+
+    assert cliente.tablas()[-1] == "snapshots"
+
+
+def test_si_falla_la_subida_no_se_escribe_una_fila_que_apunta_a_nada(tmp_path):
+    class StorageRoto(ClienteFalso):
+        def upload_png(self, path, data, *, bucket="snapshots"):
+            raise RuntimeError("snapshots: HTTP 507 sin espacio")
+
+    cliente = StorageRoto()
+    log = log_conectado(tmp_path, cliente)
+    log.begin(seed=1)
+
+    log.snapshot(after_seq=0, view="top", png=b"x")
+
+    assert "snapshots" not in cliente.tablas()
+
+
+def test_end_solo_manda_lo_que_cambia_al_cerrar(tmp_path):
+    """API.md §3: seed, task, level y n_objects se fijaron en begin()."""
+    cliente = ClienteFalso()
+    log = log_conectado(tmp_path, cliente)
+    log.begin(seed=7, n_objects=10)
+
+    log.end(episodio())
+
+    datos = [c for c in cliente.llamadas if c[0] == "patch"][0][3]
+    assert set(datos) == {"status", "duration_s", "n_placed", "score", "failure",
+                          "metrics", "ended_at"}
