@@ -2,6 +2,10 @@
    a todo lo que cuelga de runs, y para que dos hooks no inventen la misma clave distinta. */
 
 export const queryKeys = {
+  totals: {
+    runs: ["totals", "runs"] as const,
+    episodes: ["totals", "episodes"] as const,
+  },
   runs: {
     all: ["runs"] as const,
     list: (limit: number) => ["runs", "list", limit] as const,

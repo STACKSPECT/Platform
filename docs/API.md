@@ -132,8 +132,8 @@ etc. `failure` es el identificador crudo: la interfaz nunca lo muestra, usa `fai
 > `?order=started_at.desc` sobre ella da `400 42703`. `fetchLatestEpisode` de `lib/supabase.ts`
 > hace exactamente eso en su segunda consulta (cuando no hay ningún episodio `running`). El cliente
 > nuevo `getLatestEpisode` lo evita pidiendo el id a `GET /episodes?select=id&order=started_at.desc&limit=1`
-> y luego la fila de la vista con `?id=eq.{id}`. No lo he podido confirmar contra una base real (no había
-> credenciales); si se prefiere arreglarlo de raíz, basta añadir `e.started_at` a la vista en
+> y luego la fila de la vista con `?id=eq.{id}`. Confirmado contra la base real: `400 42703 column
+> v_episode_summary.started_at does not exist`. Si se prefiere arreglarlo de raíz, basta añadir `e.started_at` a la vista en
 > `002_design.sql`.
 
 ### 2.3 `GET /v_failure_breakdown`: causas de fallo por run
@@ -204,7 +204,22 @@ Legibles con `anon` (`lectura_publica`) pero **el front no las usa** salvo `epis
 en `getLatestEpisode`. Columnas en AGENTS.md §6; la fila de `runs` lleva además `config` (jsonb) y `n_episodes`
 (los episodios **pedidos**, no los reales).
 
-### 2.8 Vocabularios cerrados
+### 2.8 Totales: recuento sin filas
+
+`HEAD /v_run_summary?select=*` y `HEAD /episodes?select=*`, con la cabecera `Prefer: count=exact`
+→ `getRunsCount()` / `getEpisodesCount()` / `useRunsTotals()`.
+
+No hay cuerpo: el total es el número que sigue a `/` en `Content-Range` (`*/0` si la tabla está vacía).
+
+```
+Content-Range: 0-53/54
+```
+
+Alimentan «54 ejecuciones · 833 episodios» de la barra superior de Ejecuciones. Se cuentan en la base y no se
+suman en el cliente (AGENTS.md §4): `sum(episodes)` de `v_run_summary` y `count(episodes)` coinciden hoy, pero
+son dos cuentas distintas.
+
+### 2.9 Vocabularios cerrados
 
 `failure`: `no_detection`, `ik_unreachable`, `collision`, `grasp_slip`, `wrong_placement`, `timeout`,
 `stack_collapse`, `overhang_violation`, y el histórico `place_inaccurate` (ya no se emite). Traducción en
