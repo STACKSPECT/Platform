@@ -1,5 +1,7 @@
-# Secretos. Las credenciales de Supabase viven en .env (service_role, lado Python) y
-# en frontend/.env.local (solo la clave anon). Ninguno de los dos se versiona jamás.
+# Secretos. Las credenciales de Supabase viven en UN solo fichero, el .env de la raíz:
+# la clave anon y la service_role. No se versiona jamás. (Antes había además un
+# frontend/.env.local con la anon; se quitó porque dos copias se desincronizan solas,
+# pero el patrón .env.* lo sigue cubriendo por si alguien lo recrea.)
 .env
 .env.*
 !.env.example
@@ -29,6 +31,9 @@ dist/
 .mypy_cache/
 
 # Editor / SO
+# settings.local.json son los permisos de herramientas de cada cual, no del proyecto:
+# .claude/settings.json (compartido) sí se versionaría; el local nunca.
+.claude/settings.local.json
 .vscode/
 .idea/
 *.swp

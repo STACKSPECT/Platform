@@ -1,7 +1,7 @@
 # <tipo>(<ámbito>): <asunto en imperativo, sin punto, máx 50 caracteres>
 #
 # Tipos:  feat fix docs style refactor test chore perf ci revert
-# Ámbitos de este repo:  sim perception planning control runner metrics configs scripts
+# Ámbitos de este repo:  front live sdk telemetry seed sql backend contrato vocabulario
 #
 # Cuerpo: explica el POR QUÉ, no el qué (el diff ya dice el qué).
 #

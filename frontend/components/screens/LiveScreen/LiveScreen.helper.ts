@@ -3,7 +3,9 @@ import { clockTime } from "@/lib/ui";
 /** Con un episodio en curso y el canal sano, sin recibir nada durante este tiempo se avisa de
  *  que el episodio no envía datos. No es una conexión perdida: la conexión va bien, es quien
  *  produce el que calla (un paso lento, o un proceso que se cayó sin cerrar el episodio). Por
- *  eso es holgado: un paso de planificación o de asentado puede tardar decenas de segundos. */
+ *  eso es holgado: el ritmo de subida es muy irregular (el mismo episodio de 204 s simulados
+ *  tarda entre 26 y 71 s de reloj con el mismo motion_speed), así que hay huecos largos entre
+ *  filas que son normales. Un 8 s saltaba a media ejecución sin que pasara nada. */
 export const SILENCE_MS = 30_000;
 
 /** Cada cuánto se pregunta si hay un episodio en curso. Es lo que hace aparecer uno que acaba
