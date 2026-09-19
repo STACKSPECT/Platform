@@ -7,3 +7,4 @@ export { Banner } from "./Banner";
 export { Notice } from "./Notice";
 export { EventRow, toEventRowProps } from "./EventRow";
 export type { EventRowProps } from "./EventRow";
+export { ResultCard } from "./ResultCard";
