@@ -1,4 +1,4 @@
-import type { Episode, PalletState, Placement, RunEvent } from "@/lib/supabase";
+import type { Episode, PalletState, Placement, RunEvent, Snapshot } from "@/lib/supabase";
 import type { PalletSize } from "@/lib/pallet";
 import { failureText, mm, palletSize, seconds, signedMm } from "@/lib/ui";
 import { routes } from "@/lib/routes";
@@ -24,6 +24,8 @@ export type EpisodeView = {
   last: PalletState | null;
   events: RunEvent[];
   palletSize: PalletSize;
+  /** La última captura de cada vista, si el simulador las subió. */
+  shots: { top: Snapshot | null; side: Snapshot | null };
   sideNote: string;
   feedNote: string | undefined;
 };
@@ -86,8 +88,10 @@ export function buildEpisodeView(input: {
   runEpisodes: Episode[];
   stale: boolean;
   mode: IdentityMode;
+  snapshots?: Snapshot[];
 }): EpisodeView {
   const { episode, placements, states, events, runEpisodes, stale, mode } = input;
+  const shots = latestShots(input.snapshots ?? []);
   const last = lastPalletState(states);
   return {
     identity: buildIdentity({ episode, runEpisodes, events, stale, mode }),
@@ -97,7 +101,18 @@ export function buildEpisodeView(input: {
     // El palé puede ser una maqueta a escala: sin esto se dibuja a 1200x800
     // y todas las cotas salen mal por el mismo factor.
     palletSize: palletSize(episode),
+    shots,
     sideNote: sideViewNote(episode, last),
     feedNote: feedNote(episode),
   };
+}
+
+
+/** La captura más avanzada de cada vista: la del final del episodio, que es la que se
+ *  compara con el esquema. */
+function latestShots(snapshots: Snapshot[]): EpisodeView["shots"] {
+  const pick = (view: Snapshot["view"]) =>
+    snapshots.filter((s) => s.view === view)
+      .reduce<Snapshot | null>((a, b) => (!a || b.after_seq > a.after_seq ? b : a), null);
+  return { top: pick("top"), side: pick("side") };
 }

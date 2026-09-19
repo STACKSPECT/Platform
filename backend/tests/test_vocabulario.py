@@ -44,7 +44,9 @@ def valores_check(columna: str) -> set[str]:
     while profundidad:
         profundidad += {"(": 1, ")": -1}.get(texto[i], 0)
         i += 1
-    return set(re.findall(r"'(\w+)'", texto[inicio.end():i]))
+    # [\w-] y no \w: hay valores con guion, y comillas dobladas dentro de un
+    # literal SQL, que el findall salta solo.
+    return set(re.findall(r"'+([\w-]+)'+", texto[inicio.end():i]))
 
 
 def claves_record(nombre: str) -> set[str]:
@@ -52,7 +54,9 @@ def claves_record(nombre: str) -> set[str]:
     texto = sin_comentarios_ts(UI)
     bloque = re.search(rf"export const {nombre}[^=]*=\s*\{{(.*?)\n\}};", texto, re.S)
     assert bloque, f"no encuentro {nombre} en ui.ts"
-    return set(re.findall(r"^\s*(\w+):", bloque.group(1), re.M))
+    # La clave va entre comillas si lleva un guion, que en TS no es un
+    # identificador válido.
+    return set(re.findall(r'^\s*"?([\w-]+)"?:', bloque.group(1), re.M))
 
 
 def union_ts(fuente: str, tipo: str, campo: str | None = None) -> set[str]:

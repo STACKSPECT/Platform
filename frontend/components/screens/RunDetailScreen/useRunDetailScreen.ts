@@ -1,5 +1,7 @@
 import { useRouter } from "next/navigation";
-import { useEpisodeDetail, useEpisodes, useRun } from "@/api/hooks";
+import {
+  useEpisodeDetail, useEpisodes, useRun, useSnapshots,
+} from "@/api/hooks";
 import { configured } from "@/lib/supabase";
 import { routes } from "@/lib/routes";
 import { buildEpisodeView } from "../../organisms/EpisodeDashboard";
@@ -15,6 +17,7 @@ export function useRunDetailScreen(runId: string, seed: number | undefined) {
   const list = episodes.data ?? [];
   const episode = pickEpisode(list, seed);
   const detail = useEpisodeDetail(episode?.id);
+  const snapshots = useSnapshots(episode?.id);
 
   const retry = () => {
     void run.refetch();
@@ -47,6 +50,7 @@ export function useRunDetailScreen(runId: string, seed: number | undefined) {
       states: detail.states.data ?? [],
       events: detail.events.data ?? [],
       runEpisodes: list,
+      snapshots: snapshots.data ?? [],
       stale: false,
       mode: "run",
     }),
