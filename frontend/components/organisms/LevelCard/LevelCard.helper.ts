@@ -23,18 +23,6 @@ export const KIND_HELP: Record<DataKind, string> = {
     "medidas en una misma curva.",
 };
 
-export const EXCLUDED_HELP =
-  "Estas ejecuciones usaron otro rango de semillas y no entran en la curva: con otras semillas se " +
-  "compara suerte, no código.";
-
-export const SEEDS_HELP =
-  "La semilla fija cómo se reparten los paquetes en un episodio. Solo se comparan ejecuciones que " +
-  "usaron las mismas semillas; la curva usa el rango de semillas con más ejecuciones.";
-
-export const VERDICT_HELP =
-  "Resume la tarjeta en una palabra según cuántas métricas van a mejor y cuántas a peor desde la " +
-  "primera ejecución: Mejora, Empeora, Mixto (unas y otras) o Sin cambios.";
-
 export function kindOf(run: Run): DataKind {
   return run.synthetic ? "synthetic" : run.oracle ? "oracle" : "measured";
 }

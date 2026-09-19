@@ -1,8 +1,6 @@
 import { Badge, Card, Text } from "../../atoms";
-import { InfoTip, MetricTrend } from "../../molecules";
-import {
-  EXCLUDED_HELP, KIND_HELP, KIND_TEXT, SEEDS_HELP, VERDICT_HELP, type LevelCardView,
-} from "./LevelCard.helper";
+import { MetricTrend } from "../../molecules";
+import { KIND_TEXT, type LevelCardView } from "./LevelCard.helper";
 import styles from "./LevelCard.module.css";
 
 /** Cómo va un nivel de una tarea: un veredicto arriba y, debajo, cada métrica con dónde está,
@@ -15,36 +13,20 @@ export function LevelCard({ view }: { view: LevelCardView }) {
       <header className={styles.header}>
         <div className={styles.title}>
           <Text variant="body" size="lg" className={styles.name}>{view.title}</Text>
-          <span className={styles.meta}>
-            <Text variant="caption" tone="faint">
-              {[view.meta, view.seeds].filter(Boolean).join(" · ")}
-            </Text>
-            {view.seeds && <InfoTip label="Qué son las semillas">{SEEDS_HELP}</InfoTip>}
-          </span>
+          <Text variant="caption" tone="faint">
+            {[view.meta, view.seeds].filter(Boolean).join(" · ")}
+          </Text>
         </div>
         <div className={styles.tags}>
           {view.kind !== "measured" && (
-            <span className={styles.tag}>
-              <Badge tone={view.kind}>{KIND_TEXT[view.kind]}</Badge>
-              <InfoTip label={`Qué son los datos ${KIND_TEXT[view.kind].toLowerCase()}`}>
-                {KIND_HELP[view.kind]}
-              </InfoTip>
-            </span>
+            <Badge tone={view.kind}>{KIND_TEXT[view.kind]}</Badge>
           )}
           {view.excluded > 0 && (
-            <span className={styles.tag}>
-              <Badge tone="warn">+{view.excluded} con otras semillas</Badge>
-              <InfoTip label="Por qué se dejan fuera estas ejecuciones">{EXCLUDED_HELP}</InfoTip>
-            </span>
+            <Badge tone="warn">+{view.excluded} con otras semillas</Badge>
           )}
-          <span className={styles.tag}>
-            <Badge tone={view.verdict.tone === "muted" ? "neutral" : view.verdict.tone}>
-              {view.verdict.label}
-            </Badge>
-            <InfoTip label="Cómo se calcula el veredicto">
-              {`${view.verdict.detail}. ${VERDICT_HELP}`}
-            </InfoTip>
-          </span>
+          <Badge tone={view.verdict.tone === "muted" ? "neutral" : view.verdict.tone}>
+            {view.verdict.label}
+          </Badge>
         </div>
       </header>
 
