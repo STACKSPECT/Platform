@@ -22,6 +22,22 @@ export const PALLET_DEFAULT: PalletSize = [PALLET_X, PALLET_Y];
 /** Altura del palé (tablas y tacos), bajo la superficie donde se apila. */
 export const PALLET_DECK_M = 0.144;
 
+/* Las dos medidas de abajo eran absolutas y suponían un europeo. Con una maqueta de
+   210 mm eso dibujaba un palé 1.8 veces más alto que TODA la carga, y dejaba el montón
+   en el 18 % del alzado: parecía que no llegaban ni dimensiones ni posiciones. Se
+   escalan con el ancho del palé, y para 1.2 m dan exactamente los valores de antes. */
+
+/** Altura del palé (tablas y tacos). El europeo son 144 mm sobre 1200 de ancho. */
+export function deckHeight([px]: PalletSize): number {
+  return PALLET_DECK_M * (px / PALLET_X);
+}
+
+/** Altura mínima del eje vertical, para que un palé casi vacío no se dibuje gigante.
+ *  Un cuarto del ancho: 300 mm en el europeo, 53 en la maqueta. */
+export function minStackHeight([px]: PalletSize): number {
+  return px * 0.25;
+}
+
 /** Una colocación con pose y dimensiones, o sea, dibujable. */
 export type Drawable = Placement & {
   actual_pose: NonNullable<Placement["actual_pose"]>;

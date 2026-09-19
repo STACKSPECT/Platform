@@ -20,3 +20,4 @@ export { ToggleField } from "./ToggleField";
 export { NavTab } from "./NavTab";
 export { ThemeToggle } from "./ThemeToggle";
 export { EpisodePicker } from "./EpisodePicker";
+export { SnapshotView } from "./SnapshotView";

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  useEpisodeDetail, useEpisodeRealtime, useEpisodes, useLatestEpisode,
+  useEpisodeDetail, useEpisodeRealtime, useEpisodes, useLatestEpisode, useSnapshots,
 } from "@/api/hooks";
 import { configured } from "@/lib/supabase";
 import { useNow } from "@/hooks/useNow";
@@ -14,6 +14,7 @@ export function useLiveScreen() {
   const detail = useEpisodeDetail(episode?.id);
   const runEpisodes = useEpisodes(episode?.run_id);
   const { lastReceivedAt } = useEpisodeRealtime(episode?.id);
+  const snapshots = useSnapshots(episode?.id);
 
   const running = episode?.status === "running";
   const now = useNow(running ? 1000 : null);
@@ -47,6 +48,7 @@ export function useLiveScreen() {
       states: detail.states.data ?? [],
       events: detail.events.data ?? [],
       runEpisodes: runEpisodes.data ?? [],
+      snapshots: snapshots.data ?? [],
       stale, mode: "live",
     }),
   };

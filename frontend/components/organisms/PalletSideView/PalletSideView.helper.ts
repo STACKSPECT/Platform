@@ -1,6 +1,6 @@
 import type { PalletState, Placement } from "@/lib/supabase";
 import {
-  PALLET_DECK_M, PALLET_DEFAULT, drawable, lastPlacement, loadHeight,
+  PALLET_DEFAULT, deckHeight, drawable, lastPlacement, loadHeight, minStackHeight,
   type PalletSize,
 } from "@/lib/pallet";
 import { mm, stabilityState, type State } from "@/lib/ui";
@@ -32,9 +32,10 @@ export function buildSideView(
   const [PX] = size;
   const items = drawable(placements);
   const top = loadHeight(items);
+  const deck = deckHeight(size);
   // Un 25 % de aire sobre la carga para que la cota no toque el borde.
-  const zMax = Math.max(top * 1.25, 0.3);
-  const scale = (height - PAD.t - PAD.b) / (PALLET_DECK_M + zMax);
+  const zMax = Math.max(top * 1.25, minStackHeight(size));
+  const scale = (height - PAD.t - PAD.b) / (deck + zMax);
   const width = PX * scale + PAD.l + PAD.r;
 
   const X = (x: number) => PAD.l + (x + PX / 2) * scale;
@@ -54,9 +55,9 @@ export function buildSideView(
 
   return {
     width, height,
-    deck: { x: X(-PX / 2), y: Z(0), width: PX * scale, height: PALLET_DECK_M * scale },
-    deckLabel: { x: X(-PX / 2) + 10, y: Z(-PALLET_DECK_M / 2) + 4,
-                 text: `palé ${mm(PALLET_DECK_M, 0)}` },
+    deck: { x: X(-PX / 2), y: Z(0), width: PX * scale, height: deck * scale },
+    deckLabel: { x: X(-PX / 2) + 10, y: Z(-deck / 2) + 4,
+                 text: `palé ${mm(deck, 0)}` },
     packages,
     cog: state
       ? {
