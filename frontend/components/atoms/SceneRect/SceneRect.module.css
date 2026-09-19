@@ -5,7 +5,7 @@
 .frame   { fill: none; stroke: var(--border-hard); stroke-width: 1.5; }
 .deck    { fill: var(--border); stroke: var(--border-hard); stroke-width: 1; }
 .planned { fill: none; stroke: var(--text-4); stroke-width: 1; stroke-dasharray: 4 4; }
-.placed  { fill: rgba(155, 170, 178, 0.10); stroke: var(--text-5); stroke-width: 1; }
-.last    { fill: rgba(91, 157, 217, 0.16); stroke: var(--select); stroke-width: 2; }
-.failed  { fill: rgba(242, 84, 75, 0.16); stroke: var(--bad); stroke-width: 1; }
+.placed  { fill: var(--neutral-fill); stroke: var(--text-5); stroke-width: 1; }
+.last    { fill: var(--select-fill); stroke: var(--select); stroke-width: 2; }
+.failed  { fill: var(--bad-fill); stroke: var(--bad); stroke-width: 1; }
 .support { fill: none; stroke: var(--tone); stroke-width: 1.4; stroke-dasharray: 6 4; }

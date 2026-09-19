@@ -1,0 +1,6 @@
+/* En una pantalla estrecha no cabe junto al logo, las pestañas y el conmutador de tema. */
+.totals { white-space: nowrap; }
+
+@media (max-width: 720px) {
+  .totals { display: none; }
+}

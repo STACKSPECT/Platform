@@ -58,12 +58,12 @@ export function CogTrace({ states, height = 220, cursor }: {
 
       {[hi, 0, lo].map((v) => (
         <text key={v} x={padL - 8} y={Y(v) + 3.5} textAnchor="end" fontSize={9.5}
-              fill="var(--text-5)" fontFamily="var(--font-plex-mono), monospace">
+              fill="var(--text-4)" fontFamily="var(--font-mono), monospace">
           {v > 0 ? "+" : ""}{v.toFixed(0)}
         </text>
       ))}
       <text x={padL - 8} y={padT - 4} textAnchor="end" fontSize={9}
-            fill="var(--text-5)" fontFamily="var(--font-plex-mono), monospace">mm</text>
+            fill="var(--text-4)" fontFamily="var(--font-mono), monospace">mm</text>
 
       <path d={line} fill="none" stroke="var(--select)" strokeWidth={1.8} />
 
@@ -72,12 +72,12 @@ export function CogTrace({ states, height = 220, cursor }: {
                 fill={`var(--${stabilityState(v / 1000)})`} />
       ))}
 
-      <text x={padL} y={height - 7} fontSize={9.5} fill="var(--text-5)"
-            fontFamily="var(--font-plex-mono), monospace">
+      <text x={padL} y={height - 7} fontSize={9.5} fill="var(--text-4)"
+            fontFamily="var(--font-mono), monospace">
         paquete 1
       </text>
       <text x={w - padR} y={height - 7} textAnchor="end" fontSize={9.5}
-            fill="var(--text-5)" fontFamily="var(--font-plex-mono), monospace">
+            fill="var(--text-4)" fontFamily="var(--font-mono), monospace">
         paquete {states.length}
       </text>
     </svg>

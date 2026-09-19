@@ -1,18 +1,17 @@
 .bar {
-  height: 48px;
+  height: var(--topbar-h);
   flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 28px;
-  padding: 0 28px;
+  padding: 0 var(--page-pad);
   background: var(--topbar);
   border-bottom: 1px solid var(--border);
 }
-.title { letter-spacing: 0.1em; white-space: nowrap; }
-.nav { display: flex; gap: 22px; align-self: stretch; align-items: stretch; }
+.brand { display: inline-flex; text-decoration: none; }
+.nav { display: flex; gap: 6px; }
 .spacer { flex-grow: 1; }
 
 @media (max-width: 720px) {
-  .bar { gap: 16px; padding: 0 16px; }
-  .title { display: none; }
+  .bar { gap: 12px; padding: 0 16px; }
 }

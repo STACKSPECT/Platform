@@ -1,0 +1,37 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--logo-size) * 0.32);
+  flex-shrink: 0;
+}
+
+.mark, .word {
+  display: block;
+  background: var(--logo);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/* Las proporciones son las de los PNG de public/brand. */
+.mark {
+  height: var(--logo-size);
+  aspect-ratio: 518 / 511;
+  -webkit-mask-image: url("/brand/mark.png");
+  mask-image: url("/brand/mark.png");
+}
+.word {
+  height: calc(var(--logo-size) * 0.34);
+  aspect-ratio: 784 / 64;
+  -webkit-mask-image: url("/brand/wordmark.png");
+  mask-image: url("/brand/wordmark.png");
+}
+.hidden { display: none; }
+
+/* En pantallas estrechas el logo se queda en la marca. */
+@media (max-width: 720px) {
+  .word { display: none; }
+}

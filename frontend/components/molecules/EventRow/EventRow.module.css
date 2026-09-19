@@ -1,7 +1,9 @@
 .row {
   list-style: none;
-  min-height: 38px;
-  padding: 0 28px;
+  min-height: 42px;
+  padding: 0 12px;
+  margin: 0 12px;
+  border-radius: var(--radius-1);
   font-size: 13px;
   display: grid;
   grid-template-columns: 72px 20px 110px minmax(90px, auto) minmax(0, 1fr);

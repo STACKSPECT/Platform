@@ -1,5 +1,5 @@
 .label {
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 12.5px;
   font-variant-numeric: tabular-nums;
 }

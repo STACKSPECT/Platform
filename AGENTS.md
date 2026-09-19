@@ -41,6 +41,7 @@ frontend/                Next.js 16. Lee Supabase con la clave anon, bajo RLS.
   api/hooks/               los mismos, envueltos en TanStack Query
   components/              atoms / organisms / screens
   lib/ui.ts                TODA conversión de unidades, en un solo sitio
+  styles/colors.css        TODOS los colores (tema claro y oscuro), en un solo sitio
   lib/pallet.ts            geometría del dibujo; el tamaño del palé NO es fijo
   lib/supabase.ts          los tipos, que son la mitad del contrato
 
@@ -209,10 +210,18 @@ evolución en vez de borrón y cuenta nueva.
 
 - Python 3.11, type hints en las firmas públicas. TypeScript estricto en el front.
 - Unidades SI en el dato, milímetros y grados en la pantalla.
+- **Colores solo como variables, y definidas en un único archivo:** `frontend/styles/colors.css`.
+  Ningún otro archivo (CSS, TS, TSX) lleva `#hex`, `rgb()`, `hsl()` ni un color con nombre;
+  consume `var(--…)`. Un color con transparencia es otra variable de ese archivo, calculada
+  con `color-mix` desde la base. `npm run lint` lo comprueba (`scripts/check-colors.mjs`).
 - Nombres de código en inglés; comentarios y documentos en castellano.
 - Commits pequeños, con números cuando toquen comportamiento.
 - El diseño de referencia es `docs/design/observality-platform-design.html`: un bundle
-  autoextraíble con 11 tableros. Se abre en el navegador.
+  autoextraíble con 11 tableros. Se abre en el navegador. Manda en la **estructura y el
+  contenido** de cada pantalla; **no** en el aspecto: la identidad visual es la del logo de
+  STACKSPECT (blanco y negro, esquinas suaves, Plus Jakarta Sans y Geist Mono), con tema
+  claro y oscuro. El color con significado (estados, oracle, sembrado, causas de fallo) se
+  conserva en los dos temas. `npm run lint:contrast` garantiza el contraste AA.
 
 ---
 

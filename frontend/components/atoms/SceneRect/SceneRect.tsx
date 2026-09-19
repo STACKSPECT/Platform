@@ -13,5 +13,6 @@ type Props = {
 
 /** Un rectángulo del dibujo del palé. Coordenadas ya en píxeles: no sabe de metros. */
 export function SceneRect({ variant, tone = "ok", ...box }: Props) {
-  return <rect className={cx(styles.rect, styles[variant], styles[tone])} {...box} />;
+  const rx = variant === "frame" || variant === "deck" ? 8 : 3;
+  return <rect className={cx(styles.rect, styles[variant], styles[tone])} rx={rx} {...box} />;
 }

@@ -7,7 +7,7 @@ import styles from "./PanelHeader.module.css";
 export function PanelHeader({ title, children }: { title: string; children?: ReactNode }) {
   return (
     <div className={styles.header}>
-      <Text variant="label" tone="muted">{title}</Text>
+      <Text variant="body" size="md" className={styles.title}>{title}</Text>
       {children && <div className={styles.aside}>{children}</div>}
     </div>
   );

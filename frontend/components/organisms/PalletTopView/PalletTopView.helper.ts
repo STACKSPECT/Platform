@@ -33,7 +33,7 @@ export type TopViewModel = {
  * capa inferior a la del último paquete, que es lo que de verdad lo sostiene.
  */
 export function buildTopView(
-  placements: Placement[], state: PalletState | null, height = 330,
+  placements: Placement[], state: PalletState | null, height = 290,
   size: PalletSize = PALLET_DEFAULT,
 ): TopViewModel {
   const [PX, PY] = size;

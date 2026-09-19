@@ -20,3 +20,4 @@ export type { SelectOption } from "./Select";
 export { Swatch } from "./Swatch";
 export { Table, Th, Td, Tr } from "./Table";
 export { Sparkline } from "./Sparkline";
+export { Logo } from "./Logo";

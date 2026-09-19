@@ -1,2 +1,2 @@
-.toggle { display: inline-flex; border: 1px solid var(--border-hard); padding-right: 10px; }
-.oracle { border-color: var(--oracle); background: rgba(229, 57, 155, 0.08); }
+.toggle { display: inline-flex; border: 1px solid var(--control-border); border-radius: var(--radius-1); padding-right: 10px; background: var(--surface); }
+.oracle { border-color: var(--oracle); background: var(--oracle-fill); }

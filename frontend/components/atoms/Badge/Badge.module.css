@@ -2,20 +2,20 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 3px 9px;
+  padding: 4px 12px;
   border: 1px solid currentColor;
-  font-family: var(--font-plex-condensed), sans-serif;
-  font-size: 11px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 .neutral   { color: var(--text-3); }
-.ok        { color: var(--ok); }
-.bad       { color: var(--bad); }
+.ok        { color: var(--ok); background: var(--ok-fill); }
+.bad       { color: var(--bad); background: var(--bad-fill-soft); }
 .oracle    { color: var(--oracle); }
 .synthetic { color: var(--synthetic); }
 
-.oracle    { background: repeating-linear-gradient(135deg, rgba(229, 57, 155, 0.16) 0 7px, transparent 7px 14px); }
-.synthetic { background: repeating-linear-gradient(135deg, rgba(183, 123, 243, 0.16) 0 7px, transparent 7px 14px); }
+/* Los números que no son de verdad molestan a la vista a propósito. */
+.oracle    { background: repeating-linear-gradient(135deg, var(--oracle-stripe) 0 7px, transparent 7px 14px); }
+.synthetic { background: repeating-linear-gradient(135deg, var(--synthetic-stripe) 0 7px, transparent 7px 14px); }

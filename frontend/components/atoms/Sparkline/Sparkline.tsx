@@ -17,7 +17,7 @@ export function Sparkline({ ratios, tone, label, height = 26 }: Props) {
   return (
     <svg className={cx(styles.spark, styles[tone])} width={width} height={height}
          viewBox={`0 0 ${width} ${height}`} role="img" aria-label={label}>
-      {bars.map((b, i) => <rect key={i} {...b} />)}
+      {bars.map((b, i) => <rect key={i} rx={2} {...b} />)}
     </svg>
   );
 }

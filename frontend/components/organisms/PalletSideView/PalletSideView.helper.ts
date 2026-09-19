@@ -26,14 +26,14 @@ export type SideViewModel = {
 
 /** El eje vertical arranca en la superficie del palé (z = 0); el palé se dibuja debajo. */
 export function buildSideView(
-  placements: Placement[], state: PalletState | null, height = 290,
+  placements: Placement[], state: PalletState | null, height = 250,
   size: PalletSize = PALLET_DEFAULT,
 ): SideViewModel {
   const [PX] = size;
   const items = drawable(placements);
   const top = loadHeight(items);
   // Un 25 % de aire sobre la carga para que la cota no toque el borde.
-  const zMax = Math.max(top * 1.25, 0.5);
+  const zMax = Math.max(top * 1.25, 0.3);
   const scale = (height - PAD.t - PAD.b) / (PALLET_DECK_M + zMax);
   const width = PX * scale + PAD.l + PAD.r;
 
