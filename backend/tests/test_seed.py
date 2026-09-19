@@ -5,13 +5,18 @@ tablero entero a sus tres estados— así que conviene que su signo signifique l
 que significa: negativo = vuelca.
 """
 
+import os
 import random
+import subprocess
+import sys
+from pathlib import Path
 
 from seed.palletizing import (
     CAMPAIGN,
     PACKAGES_BY_LEVEL,
     TRANSPORT_ACCEL_G,
     build_episode,
+    episode_seed,
     stability_margin,
     support_polygon,
 )
@@ -93,6 +98,35 @@ def test_la_campana_va_de_peor_a_mejor():
 
 
 # ── reproducibilidad ─────────────────────────────────────────────────────────
+
+def test_la_semilla_no_depende_de_pythonhashseed():
+    """El bug que esto cierra: `hash()` de una cadena está aleatorizado por proceso
+    desde Python 3.3, así que cada ejecución del sembrado daba un histórico distinto
+    mientras el comentario prometía lo contrario. Hay que lanzarlo en dos procesos
+    con PYTHONHASHSEED distinto, porque dentro de uno solo el hash sí es estable y el
+    fallo no se ve."""
+    guion = ("import sys; sys.path.insert(0, '.');"
+             "from seed.palletizing import episode_seed;"
+             "print(episode_seed('8c5cbf4', 37))")
+
+    salidas = set()
+    for semilla_hash in ("0", "1", "random"):
+        entorno = {**os.environ, "PYTHONHASHSEED": semilla_hash}
+        salidas.add(subprocess.run(
+            [sys.executable, "-c", guion], capture_output=True, text=True,
+            cwd=Path(__file__).resolve().parents[1], env=entorno, check=True,
+        ).stdout.strip())
+
+    assert len(salidas) == 1, f"la semilla cambia entre procesos: {salidas}"
+
+
+def test_semillas_distintas_para_episodios_distintos():
+    """Determinista no puede significar constante, o todos los episodios de un run
+    saldrían calcados."""
+    semillas = {episode_seed("8c5cbf4", s) for s in range(25)}
+    assert len(semillas) == 25
+    assert episode_seed("8c5cbf4", 1) != episode_seed("6f0f534", 1)
+
 
 def test_el_mismo_rng_da_el_mismo_episodio():
     """Sin esto el histórico sembrado cambia solo, y la curva de mejora deja de ser

@@ -161,6 +161,16 @@ class Supabase:
         )
         self._send(request, table)
 
+    def delete(self, table: str, match: dict) -> None:
+        """DELETE con filtro de igualdad. Lo usa el sembrado para limpiar lo suyo."""
+        query = "&".join(f"{k}=eq.{v}" for k, v in match.items())
+        request = urllib.request.Request(
+            f"{self.base}/{table}?{query}",
+            method="DELETE",
+            headers=self._headers("return=minimal"),
+        )
+        self._send(request, table)
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Conversión a filas

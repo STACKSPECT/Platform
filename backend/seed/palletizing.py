@@ -27,7 +27,7 @@ import argparse
 import math
 import random
 import sys
-import urllib.request
+import zlib
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -273,6 +273,16 @@ def build_episode(rng: random.Random, precision: float, bias: float,
             "final": states[-1] if states else None}
 
 
+def episode_seed(sha: str, seed: int) -> int:
+    """Semilla del RNG para un (commit, episodio).
+
+    Con `hash()` esto NO era determinista: CPython aleatoriza el hash de las cadenas
+    por proceso desde la 3.3 (PYTHONHASHSEED), así que cada ejecución del sembrado
+    producía un histórico distinto mientras el comentario prometía lo contrario. Un
+    histórico que cambia solo no sirve para enseñar una curva de mejora."""
+    return zlib.crc32(f"{sha}:{seed}".encode())
+
+
 def seed_run(client: Supabase, sha: str, level: int, label: str, description: str,
              precision: float, bias: float, lookahead: int, balance: bool, *, seeds: range, started: datetime,
              rng: random.Random) -> tuple[str, int]:
@@ -288,7 +298,7 @@ def seed_run(client: Supabase, sha: str, level: int, label: str, description: st
     for seed in seeds:
         # Semilla determinista por (commit, episodio): relanzar el sembrado dos veces
         # da el mismo histórico, igual que exigimos al simulador de verdad.
-        rng.seed(hash((sha, seed)) & 0xFFFFFFFF)
+        rng.seed(episode_seed(sha, seed))
         ep = build_episode(rng, precision, bias, lookahead, balance,
                            PACKAGES_BY_LEVEL[level])
         result = EpisodeResult(
@@ -325,10 +335,7 @@ def wipe(client: Supabase) -> int:
     """Borra solo lo sembrado. Lo real no se toca ni por accidente."""
     rows = client.get("runs", select="id", synthetic="true")
     for row in rows:
-        request = urllib.request.Request(
-            f"{client.base}/runs?id=eq.{row['id']}", method="DELETE",
-            headers=client._headers("return=minimal"))
-        urllib.request.urlopen(request, timeout=10).close()
+        client.delete("runs", {"id": row["id"]})
     return len(rows)
 
 
