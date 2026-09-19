@@ -9,6 +9,8 @@
 
 .option { position: relative; cursor: pointer; }
 .input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: inherit; }
+/* El aro de foco lo dibuja la cara (redondeada); el del input, invisible, saldría duplicado. */
+.input:focus-visible { outline: none; }
 
 .face {
   display: inline-flex;
