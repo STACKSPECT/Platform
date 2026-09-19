@@ -1,0 +1,1 @@
+export { PalletTopView } from "./PalletTopView";

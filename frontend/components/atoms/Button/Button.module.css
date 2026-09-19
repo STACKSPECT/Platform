@@ -1,0 +1,20 @@
+.button {
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+.button:disabled { cursor: not-allowed; opacity: 0.5; }
+
+/* El azul acero marca interacción, y esto es interacción. */
+.link { color: var(--select); }
+.link:hover:not(:disabled) { color: var(--link); text-decoration: underline; }
+
+.outline {
+  color: var(--text);
+  border: 1px solid var(--border-hard);
+  padding: 6px 12px;
+}
+.outline:hover:not(:disabled) { border-color: var(--select); color: var(--select); }

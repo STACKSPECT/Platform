@@ -1,0 +1,8 @@
+.bar {
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px 22px;
+  padding: 14px 20px;
+}
+.spacer { flex-grow: 1; }

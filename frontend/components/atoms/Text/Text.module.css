@@ -1,0 +1,39 @@
+.text { margin: 0; }
+
+/* Etiquetas y cabeceras: condensada, versal, muy espaciada. */
+.label {
+  font-family: var(--font-plex-condensed), var(--font-plex-sans), sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+.body    { font-size: 13px; }
+.caption { font-size: 11.5px; }
+
+/* Toda magnitud física: monoespaciada y de cifras fijas para que no bailen en vivo. */
+.num, .mono {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.num  { font-size: 13px; }
+.mono { font-size: 12px; }
+
+.default { color: var(--text); }
+.muted   { color: var(--text-3); }
+.faint   { color: var(--text-4); }
+.ok      { color: var(--ok); }
+.warn    { color: var(--warn); }
+.bad     { color: var(--bad); }
+.select  { color: var(--select); }
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* Van después de las variantes para ganarles con la misma especificidad. */
+.md { font-size: 14px; }
+.lg { font-size: 15px; }

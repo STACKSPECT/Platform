@@ -36,13 +36,17 @@ backend/                 SQL + SDK. Supabase ES el backend; no hay servidor prop
   pyproject.toml
 
 frontend/                Next.js 16. Lee Supabase con la clave anon, bajo RLS.
-  app/                     rutas: / (Live), /runs, /runs/[id], /runs/[id]/[seed]
-  components/              Pallet, Episode, Runs, primitives, TopBar
+  app/                     rutas: / (Live), /runs
+  api/clients/             una función por endpoint de PostgREST
+  api/hooks/               los mismos, envueltos en TanStack Query
+  components/              atoms / organisms / screens
   lib/ui.ts                TODA conversión de unidades, en un solo sitio
-  lib/supabase.ts          tipos, consultas y comparability()
+  lib/pallet.ts            geometría del dibujo; el tamaño del palé NO es fijo
+  lib/supabase.ts          los tipos, que son la mitad del contrato
 
 docs/
   BRIEFING-observabilidad.md   qué se construye y por qué
+  API.md                       el contrato: endpoints, tipos y vocabularios
   design/                      los 11 tableros del diseño, a 1440 px
 ```
 
@@ -214,18 +218,19 @@ evolución en vez de borrón y cuenta nueva.
 
 ## 9. Estado
 
-- **Backend: completo y con red.** Esquema, SDK, backfill y sembrado, con 110 tests y
+- **Backend: completo y con red.** Esquema, SDK, backfill y sembrado, con 116 tests y
   CI. `pytest backend -q` no toca la red; exportando `DATABASE_URL` a un Postgres
   desechable se añaden los que levantan el esquema de verdad y comprueban el contrato
-  con el front (`backend/tests/test_contrato.py`). El contrato está escrito en `API.md`.
+  con el front (`backend/tests/test_contrato.py`). El contrato está escrito en `docs/API.md`.
 - **Episodio en vivo:** `RunLog` tiene `begin()` / `event()` / `pallet_state()` /
   `end()` además de `episode()`. **La simulación tiene que llamarlas** o Live enseñará
   el palé ya montado: `episode()` sube todo de golpe y entonces no hay fila `running`
   ni `UPDATE` a los que Realtime pueda reaccionar.
-- **Front:** tokens, librerías, componentes y la pantalla **Live** con Realtime y sus
-  tres estados (sin ejecución, fallo, conexión perdida). Compila.
-- **Pendiente:** las rutas `/runs`, `/runs/[id]` y `/runs/[id]/[seed]`. Son pegamento:
-  sus componentes ya están en `components/Runs.tsx` y `components/Episode.tsx`.
+- **Front:** `/` (Live) y `/runs` (Ejecuciones), sobre TanStack Query, con Realtime y
+  los tres estados no felices. El tamaño del palé sale de `config.pallet_size_m` vía
+  `palletSize()`: **no** se dibuja siempre a 1200x800, porque el palé real puede ser una
+  maqueta a escala y entonces todas las cotas saldrían mal por el mismo factor.
+- **Pendiente:** las rutas `/runs/[id]` y `/runs/[id]/[seed]`.
 
 Aviso de Next 16: `params` es una Promise (`const { id } = await params`) y existen los
 tipos globales `PageProps<'/runs/[id]'>`. Hay documentación offline en

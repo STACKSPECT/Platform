@@ -78,6 +78,21 @@ export function kg(v: number | null | undefined, digits = 1): string {
   return `${v.toFixed(digits)}${NBSP}kg`;
 }
 
+/** Un número con signo explícito y el «−» tipográfico. Un cero redondeado no lleva signo:
+ *  «−0» no significa nada. La unidad la pone quien lo use. */
+export function signedNumber(n: number, digits = 0): string {
+  const rounded = Number(Math.abs(n).toFixed(digits));
+  const sign = rounded === 0 ? "" : n < 0 ? "−" : "+";
+  return `${sign}${rounded.toFixed(digits)}`;
+}
+
+/** Parte una cantidad ya formateada ("31 mm") en número y unidad, para pintarlas con
+ *  tamaños distintos. No convierte nada: solo trocea lo que devuelven mm/pct/seconds. */
+export function splitQuantity(formatted: string): { value: string; unit: string } {
+  const [value, ...rest] = formatted.split(/\s/);
+  return { value, unit: rest.join(" ") };
+}
+
 /* ── estados ────────────────────────────────────────────────────────────── */
 
 export type State = "ok" | "warn" | "bad";

@@ -1,0 +1,43 @@
+/* El tablero mide 1440×900: escena a la izquierda (dos paneles apilados) y estado a la
+   derecha. Altura fija, la de la ventana menos la barra global (48 px): la página no
+   scrollea nunca. Si el contenido no cabe (ventana baja o móvil), scrollea la propia
+   pantalla, y cada panel conserva un alto mínimo útil en vez de aplastarse. */
+.screen {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 48px);
+  height: calc(100dvh - 48px);
+  min-height: 0;
+  overflow-y: auto;
+}
+.body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: 32px;
+  padding: 32px;
+}
+.stage, .side {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.stage > * { flex: 1; min-height: 200px; }
+
+/* Portátil estrecho: la escena cede un poco para no comerse el estado. */
+@media (max-width: 1180px) {
+  .body { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; padding: 20px; }
+}
+
+/* La demo puede acabar enseñándose en un móvil: se apila; el cuerpo crece con su contenido
+   y scrollea la pantalla, no la página. */
+@media (max-width: 860px) {
+  .body { flex: none; grid-template-columns: minmax(0, 1fr); }
+  .stage > * { min-height: 280px; }
+}
+@media (max-width: 460px) {
+  .body { padding: 8px; gap: 8px; }
+}

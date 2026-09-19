@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, IBM_Plex_Sans_Condensed } from "next/font/google";
 import "./globals.css";
-import TopBar from "@/components/TopBar";
+import { AppHeader } from "@/components/screens/AppHeader";
+import { Providers } from "./providers";
 
 /* Las tres voces del diseño, cada una con su trabajo:
    Sans para el texto de interfaz, Condensed para etiquetas y cabeceras en versal,
@@ -38,8 +39,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${plexSans.variable} ${plexCondensed.variable} ${plexMono.variable}`}
     >
       <body>
-        <TopBar />
-        {children}
+        <Providers>
+          <AppHeader />
+          {children}
+        </Providers>
       </body>
     </html>
   );
