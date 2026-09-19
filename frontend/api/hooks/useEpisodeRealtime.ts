@@ -58,7 +58,11 @@ export function useEpisodeRealtime(episodeId: string | undefined) {
             void queryClient.invalidateQueries({ queryKey: queryKeys.episodes.all });
             touch();
           })
-      .subscribe((status) => setSubscribed(status === "SUBSCRIBED"));
+      .subscribe((status) => {
+        setSubscribed(status === "SUBSCRIBED");
+        // Estar suscrito ya es una señal de vida: es la referencia del latido.
+        if (status === "SUBSCRIBED") touch();
+      });
 
     return () => {
       setSubscribed(false);
