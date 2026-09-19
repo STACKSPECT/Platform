@@ -1,12 +1,14 @@
 "use client";
 
+import { routes } from "@/lib/routes";
 import { Button } from "../../atoms";
-import { Banner, Notice } from "../../molecules";
+import { Banner, EmptyState, Notice } from "../../molecules";
 import { EpisodeDashboard } from "../../organisms";
 import { useLiveScreen } from "./useLiveScreen";
 
-/** Live: el cuadro de un episodio con el último que haya. Nunca se queda en blanco: sin
- *  ejecución enseña el último terminado y, si se pierde la conexión, congela lo último
+/** Live: el cuadro del episodio que está corriendo ahora. Sin ejecución en directo lo dice
+ *  con un mensaje (nunca se queda en blanco ni enseña lo último terminado como si fuera
+ *  actual) y, si se pierde la conexión con un episodio en pantalla, congela lo último
  *  recibido y lo dice. */
 export function LiveScreen() {
   const s = useLiveScreen();
@@ -19,20 +21,20 @@ export function LiveScreen() {
       </Notice>
     );
   }
-  if (s.state === "loading") return <Notice title="Cargando…">Buscando el último episodio.</Notice>;
+  if (s.state === "loading") return <Notice title="Cargando…">Buscando una ejecución en directo.</Notice>;
   if (s.state === "error") {
     return (
-      <Notice title="No se pudo cargar">
+      <Notice title="No se pudo comprobar si hay una ejecución en directo">
         {s.error} <Button onClick={s.retry}>Reintentar</Button>
       </Notice>
     );
   }
-  if (s.state === "empty" || !s.view) {
+  if (s.state === "idle") {
     return (
-      <Notice title="Todavía no hay episodios">
-        Lanza un benchmark con <code>--telemetry</code>, o siembra un histórico con{" "}
-        <code>backend/seed/palletizing.py</code>.
-      </Notice>
+      <EmptyState title="No hay ninguna ejecución en directo" actionHref={routes.runs}
+                  actionLabel="Ver ejecuciones anteriores">
+        Cuando una ejecución arranque, aparecerá aquí en cuanto empiece a escribir datos.
+      </EmptyState>
     );
   }
 

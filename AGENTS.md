@@ -131,9 +131,13 @@ calculados de las vistas SQL. Dos sitios que suman lo mismo acaban discrepando.
 **Medianas, no medias.** Un episodio que se derrumba a los 3 s arrastra la media del
 tiempo de ciclo y hace parecer rápido a un run que va mal.
 
-**Live nunca se queda en blanco.** Sin ejecución activa enseña la última terminada; si
-se pierde la conexión congela lo último recibido y lo dice. Quedarse en blanco delante
-del jurado es lo peor que puede hacer esa pantalla.
+**Live solo enseña lo que está pasando ahora, y nunca se queda en blanco.** Muestra el
+episodio `running`; sin ninguno, lo dice con un mensaje («No hay ninguna ejecución en
+directo») y **no** lo rellena con lo último terminado, porque eso se leería como si
+estuviera ocurriendo. Si se pierde la conexión con un episodio en pantalla, congela lo
+último recibido y lo dice. Lo terminado se mira en Ejecuciones. Quedarse en blanco delante
+del jurado es lo peor que puede hacer esa pantalla; un mensaje claro no es quedarse en
+blanco.
 
 **El disco manda.** El `episodes.jsonl` que escribe la simulación es la fuente de
 verdad; Supabase es una réplica consultable. Un fallo de red avisa una vez y el
