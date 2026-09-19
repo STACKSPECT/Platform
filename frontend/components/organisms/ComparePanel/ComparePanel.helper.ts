@@ -2,7 +2,7 @@ import type { Blocker, Run } from "@/lib/supabase";
 import { commonSeeds, comparability } from "@/lib/supabase";
 import type { FailureBreakdownRow } from "@/api/types";
 import {
-  TASK_TEXT, failureColor, failureText, pct, seconds, signedNumber,
+  TASK_TEXT, changeTone, failureColor, failureText, pct, seconds, signedNumber,
 } from "@/lib/ui";
 
 export type ComparePair = {
@@ -49,12 +49,6 @@ function newerFirst([x, y]: [Run, Run]): [Run, Run] {
   return Date.parse(x.started_at) >= Date.parse(y.started_at) ? [x, y] : [y, x];
 }
 
-/** Tono de un delta. Un cambio que se redondea a cero no es ni mejora ni empeora. */
-function deltaTone(diff: number, digits: number, lowerIsBetter: boolean): DeltaView["tone"] {
-  if (Number(Math.abs(diff).toFixed(digits)) === 0) return "muted";
-  return (lowerIsBetter ? diff < 0 : diff > 0) ? "ok" : "bad";
-}
-
 /** Resta de dos valores que ya calculó la vista, no una agregación. Si falta uno, se dice. */
 function delta(input: {
   label: string; newer: number | null; base: number | null; scale: number; digits: number;
@@ -66,7 +60,7 @@ function delta(input: {
   const diff = (newer - base) * scale;
   return {
     label, value: signedNumber(diff, digits), unit, detail,
-    tone: deltaTone(diff, digits, lowerIsBetter),
+    tone: changeTone(diff, digits, lowerIsBetter),
   };
 }
 

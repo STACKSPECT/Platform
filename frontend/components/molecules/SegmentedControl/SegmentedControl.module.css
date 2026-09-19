@@ -1,0 +1,31 @@
+.group {
+  display: inline-flex;
+  padding: 4px;
+  gap: 2px;
+  background: var(--row-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+}
+
+.option { position: relative; cursor: pointer; }
+.input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: inherit; }
+
+.face {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-3);
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+.option:hover .face { color: var(--text); }
+/* La opción elegida, en tinta, como la pestaña activa de la barra. */
+.input:checked + .face { background: var(--select); color: var(--on-select); }
+.input:checked + .face .count { color: inherit; opacity: 0.75; }
+.input:focus-visible + .face { outline: 2px solid var(--select); outline-offset: 2px; }
+
+.count { color: var(--text-4); }
+.empty .face { opacity: 0.55; }

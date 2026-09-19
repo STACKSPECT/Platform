@@ -21,3 +21,7 @@ export { NavTab } from "./NavTab";
 export { ThemeToggle } from "./ThemeToggle";
 export { EpisodePicker } from "./EpisodePicker";
 export { EmptyState } from "./EmptyState";
+export { SegmentedControl } from "./SegmentedControl";
+export { ChangePill } from "./ChangePill";
+export { MetricTrend } from "./MetricTrend";
+export type { MetricChange } from "./MetricTrend";

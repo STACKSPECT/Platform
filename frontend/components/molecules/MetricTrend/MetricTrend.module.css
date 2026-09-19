@@ -1,0 +1,19 @@
+.row {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) minmax(130px, 1fr) minmax(150px, 1.3fr);
+  align-items: center;
+  gap: 16px 24px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+.row:last-child { border-bottom: 0; }
+
+.now { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.change { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; }
+.chart { min-width: 0; }
+
+/* Estrecho: la línea baja a su propia fila en vez de aplastarse. */
+@media (max-width: 720px) {
+  .row { grid-template-columns: 1fr 1fr; }
+  .chart { grid-column: 1 / -1; }
+}
