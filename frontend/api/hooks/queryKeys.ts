@@ -16,7 +16,7 @@ export const queryKeys = {
     all: ["episodes"] as const,
     byRun: (runId: string) => ["episodes", "run", runId] as const,
     detail: (runId: string, seed: number) => ["episodes", "run", runId, seed] as const,
-    latest: ["episodes", "latest"] as const,
+    running: ["episodes", "running"] as const,
     placements: (id: string) => ["episodes", id, "placements"] as const,
     states: (id: string) => ["episodes", id, "pallet-states"] as const,
     events: (id: string) => ["episodes", id, "events"] as const,

@@ -5,9 +5,15 @@ import { clockTime } from "@/lib/ui";
  *  enterarse dos segundos más tarde. */
 export const HEARTBEAT_MS = 8000;
 
-/** Cada cuánto se busca un episodio nuevo. Realtime solo vigila el episodio que ya se
- *  está viendo, así que uno que empieza se descubre preguntando. */
-export const LATEST_POLL_MS = 5000;
+/** Cada cuánto se pregunta si hay un episodio en curso. Es lo que hace aparecer uno que acaba
+ *  de arrancar (Realtime solo vigila el episodio que ya se está viendo) y lo que retira el
+ *  que acaba de terminar si el aviso de Realtime no llega. */
+export const LIVE_POLL_MS = 5000;
+
+/** Cuánto se sigue enseñando un episodio que acaba de terminar, con su resultado, antes de
+ *  dar el directo por acabado. Deja ver el desenlace y cubre el hueco hasta el episodio
+ *  siguiente de una misma ejecución, para que Live no parpadee entre uno y otro. */
+export const HOLD_MS = 10_000;
 
 export function isStale(input: {
   running: boolean; fetchFailed: boolean; lastSignalAt: number; now: number;

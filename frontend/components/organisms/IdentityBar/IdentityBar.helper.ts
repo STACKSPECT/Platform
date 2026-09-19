@@ -13,7 +13,7 @@ export type IdentityView = {
   clock: { value: string; unit: string };
 };
 
-/** `live`: se mira el último episodio de lo que esté corriendo. `run`: se mira un episodio
+/** `live`: se mira el episodio que corre ahora (o que acaba de terminar). `run`: se mira un episodio
  *  concreto de una ejecución ya hecha, y el estado dice cómo acabó. */
 export type IdentityMode = "live" | "run";
 
@@ -28,8 +28,8 @@ function statusOf(
       : { label: "Fallo", tone: "bad", pulse: false };
   }
   if (episode.status === "running") return { label: "En vivo", tone: "light", pulse: true };
-  if (episode.status === "success") return { label: "Último", tone: "ok", pulse: false };
-  return { label: "Último", tone: "muted", pulse: false };
+  // En Live solo se ve algo que ya no corre durante el margen posterior a terminar.
+  return { label: "Terminado", tone: episode.status === "success" ? "ok" : "bad", pulse: false };
 }
 
 /** Posición del episodio dentro de su run, por semilla. Las cuentas salen de la lista
