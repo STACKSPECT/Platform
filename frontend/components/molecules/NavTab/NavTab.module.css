@@ -1,0 +1,8 @@
+.tab {
+  font-size: 14px;
+  color: var(--text-3);
+  padding: 15px 4px;
+  border-bottom: 2px solid transparent;
+}
+.tab:hover { color: var(--text); }
+.active { color: var(--text); border-bottom-color: var(--text); }

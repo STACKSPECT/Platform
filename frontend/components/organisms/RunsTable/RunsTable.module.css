@@ -1,0 +1,2 @@
+/* Llena el hueco que le da la pantalla; el scroll lo pone la tabla. */
+.card { flex: 1 1 auto; min-height: 0; }

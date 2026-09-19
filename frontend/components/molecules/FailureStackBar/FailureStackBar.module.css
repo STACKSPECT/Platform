@@ -1,0 +1,5 @@
+.row { display: flex; align-items: center; gap: 20px; }
+.label { width: 80px; flex-shrink: 0; font-size: 14px; }
+.bar { flex: 1; min-width: 0; height: 32px; display: flex; background: var(--row-alt); }
+.segment { flex-basis: 0; min-width: 2px; }
+.none { align-self: center; padding-left: 14px; }

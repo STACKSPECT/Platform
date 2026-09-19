@@ -1,0 +1,5 @@
+.spark { display: block; flex-shrink: 0; }
+.spark rect { fill: var(--tone); }
+.ok   { --tone: var(--ok); }
+.warn { --tone: var(--warn); }
+.bad  { --tone: var(--bad); }

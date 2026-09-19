@@ -1,0 +1,3 @@
+.flag { display: inline-flex; vertical-align: middle; }
+.oracle { color: var(--oracle); }
+.synthetic { color: var(--synthetic); }

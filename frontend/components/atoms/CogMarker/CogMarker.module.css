@@ -1,0 +1,6 @@
+.cog { stroke: var(--tone); stroke-width: 1.6; }
+.ok   { --tone: var(--ok); }
+.warn { --tone: var(--warn); }
+.bad  { --tone: var(--bad); }
+.ring  { fill: none; }
+.solid { fill: var(--tone); stroke: none; }

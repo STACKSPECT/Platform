@@ -1,0 +1,1 @@
+export { CompareResult } from "./CompareResult";

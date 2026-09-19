@@ -1,0 +1,11 @@
+.grid {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* En un móvil, un indicador por fila: el número enorme no cabe a dos columnas. */
+@media (max-width: 460px) {
+  .grid { grid-template-columns: 1fr; }
+}
