@@ -245,15 +245,18 @@ python backend/seed/humo_live.py              # builds a pallet slowly: smoke-te
   keys the event feed expects, several failure causes, and the edge cases the frontend
   has to render (an episode that placed nothing, planned versus actual poses, positive
   overhang).
-- **`humo_live.py`** — uses the live cycle so Realtime has something to deliver. With
-  `/` open in the browser, the pallet must build package by package and the KPIs move on
-  their own, without a reload.
+- **`humo_live.py`** — drives the `begin()` / `event()` / `pallet_state()` / `end()`
+  cycle so Realtime has something to deliver. With `/` open in the browser, the pallet
+  must build package by package and the KPIs move on their own, without a reload. Its
+  run is labelled `humo-live`; delete it when you are done, because unlike the other two
+  it is **not** flagged synthetic.
 
 > [!IMPORTANT]
-> Everything these scripts write is marked **`synthetic = true`**, and that is neither
-> optional nor switchable. The interface hatches synthetic data and never lets it into a
-> comparison with measured data. An invented number that reads as a measured one is the
-> fastest way to lose credibility in front of a jury.
+> Everything `palletizing.py` and `ejemplo_contrato.py` write is marked
+> **`synthetic = true`**, and that is neither optional nor switchable. The interface
+> hatches synthetic data and never lets it into a comparison with measured data. An
+> invented number that reads as a measured one is the fastest way to lose credibility in
+> front of a jury.
 
 To import real episodes already on disk:
 
@@ -296,6 +299,7 @@ docs/
   API.md                       the contract: endpoints, types and vocabularies
   BRIEFING-observabilidad.md   what is being built and why
   design/                      the 11 design boards, at 1440 px
+  img/                         screenshots and brand variants used by this README
 ```
 
 ### Checks
