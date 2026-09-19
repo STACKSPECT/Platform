@@ -233,8 +233,7 @@ class RunLog:
             "label": label,
             "n_episodes": int(n_episodes),
         }], returning=True))
-        if rows:
-            self.run_id = rows[0]["id"]
+        self.run_id = self._id_of(rows)
 
     # ── uso normal ───────────────────────────────────────────────────────────
 
@@ -249,9 +248,9 @@ class RunLog:
 
         rows = self._try("episodes", lambda: self.client.insert(
             "episodes", [episode_row(result, self.run_id)], returning=True))
-        if not rows:
+        episode_id = self._id_of(rows)
+        if not episode_id:
             return
-        episode_id = rows[0]["id"]
 
         for table, items in (("placements", placements),
                              ("pallet_states", pallet_states),
@@ -285,8 +284,7 @@ class RunLog:
             "n_objects": int(n_objects),
             "n_placed": 0,
         }], returning=True))
-        if rows:
-            self.episode_id = rows[0]["id"]
+        self.episode_id = self._id_of(rows)
 
     def event(self, **row: Any) -> None:
         self._push("events", row)
@@ -312,6 +310,17 @@ class RunLog:
         row["ended_at"] = "now()"
         self._try("episodes", lambda: self.client.patch(
             "episodes", {"id": episode_id}, row))
+
+    @staticmethod
+    def _id_of(rows: Any) -> str | None:
+        """El id de la fila recién creada, o None si PostgREST devolvió otra cosa.
+
+        Va aparte porque la lectura ocurre FUERA de `_try` —ya ha vuelto de la red— y
+        un `rows[0]["id"]` a pelo se llevaría por delante el episodio con un KeyError
+        justo después de haberlo blindado."""
+        if not rows or not isinstance(rows[0], dict):
+            return None
+        return rows[0].get("id")
 
     def _push(self, table: str, row: dict) -> None:
         """Una fila hija del episodio abierto. Sin `begin()` no hay dónde colgarla."""
@@ -348,7 +357,13 @@ class RunLog:
             return None
         try:
             return call()
-        except RuntimeError as err:
+        # RuntimeError es lo que lanza el cliente a propósito. Los otros dos son el
+        # resto de formas en que una respuesta rara tumba la subida: un 200 con cuerpo
+        # que no es JSON revienta en `json.loads` (ValueError, del que hereda
+        # JSONDecodeError), y una fila devuelta sin `id` revienta al leerla
+        # (LookupError). Que el remoto falle nunca puede llevarse por delante el
+        # episodio: para eso existe este blindaje.
+        except (RuntimeError, ValueError, LookupError) as err:
             if not self._warned:
                 print(f"  aviso: Supabase no responde ({err}). "
                       f"Se sigue escribiendo en {self.path}")

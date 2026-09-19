@@ -307,6 +307,42 @@ def test_sin_run_id_no_se_intenta_subir_nada(tmp_path):
     assert len(log.path.read_text(encoding="utf-8").splitlines()) == 1
 
 
+def test_una_respuesta_sin_id_no_tumba_el_episodio(tmp_path):
+    """PostgREST puede contestar 200 con algo que no trae `id`. Leerlo lanzaría
+    KeyError, que no es un RuntimeError y se escaparía del blindaje."""
+    class SinId(ClienteFalso):
+        def insert(self, table, rows, *, returning=False):
+            super().insert(table, rows, returning=returning)
+            return [{"otra_cosa": 1}] if returning else []
+
+    log = log_conectado(tmp_path, SinId())
+
+    log.episode(episodio())          # no propaga
+
+    assert len(log.path.read_text(encoding="utf-8").splitlines()) == 1
+    # No se intentan colgar filas hijas de un episodio que no se sabe cuál es.
+    assert cliente_tablas(log) == ["episodes"]
+
+
+def cliente_tablas(log) -> list[str]:
+    return log.client.tablas() if log.client else []
+
+
+def test_un_cuerpo_que_no_es_json_no_tumba_el_episodio(tmp_path):
+    """Un 200 con HTML de un proxy revienta en json.loads, que lanza ValueError."""
+    class Basura(ClienteFalso):
+        def insert(self, table, rows, *, returning=False):
+            super().insert(table, rows, returning=returning)
+            raise json.JSONDecodeError("Expecting value", "<html>", 0)
+
+    log = log_conectado(tmp_path, Basura())
+
+    log.episode(episodio())
+
+    assert len(log.path.read_text(encoding="utf-8").splitlines()) == 1
+    assert log.client is None
+
+
 # ── el episodio en vivo ──────────────────────────────────────────────────────
 
 def test_begin_abre_el_episodio_en_curso(tmp_path):
