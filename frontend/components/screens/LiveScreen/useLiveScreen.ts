@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   useEpisodeDetail, useEpisodeRealtime, useEpisodes, useRunningEpisode,
-  useRunningEpisodeRealtime,
+  useRunningEpisodeRealtime, useSnapshots,
 } from "@/api/hooks";
 import { configured } from "@/lib/supabase";
 import { useHold } from "@/hooks/useHold";
@@ -39,6 +39,7 @@ export function useLiveScreen() {
 
   const detail = useEpisodeDetail(episode?.id);
   const { lastReceivedAt } = useEpisodeRealtime(episode?.id);
+  const snapshots = useSnapshots(episode?.id);
 
   const now = useNow(episode ? 1000 : null);
   // Hasta que llegue algo por Realtime, la referencia es la de cuando se montó la pantalla.
@@ -75,6 +76,7 @@ export function useLiveScreen() {
       states: detail.states.data ?? [],
       events: detail.events.data ?? [],
       runEpisodes: runEpisodes.data ?? [],
+      snapshots: snapshots.data ?? [],
       stale, mode: "live",
     }),
   };

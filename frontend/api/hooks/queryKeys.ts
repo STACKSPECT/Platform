@@ -20,5 +20,6 @@ export const queryKeys = {
     placements: (id: string) => ["episodes", id, "placements"] as const,
     states: (id: string) => ["episodes", id, "pallet-states"] as const,
     events: (id: string) => ["episodes", id, "events"] as const,
+    snapshots: (id: string) => ["episodes", id, "snapshots"] as const,
   },
 };

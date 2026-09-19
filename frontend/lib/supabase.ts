@@ -201,6 +201,19 @@ export async function fetchLatestEpisode(): Promise<Episode | null> {
 
 /* ── comparabilidad ─────────────────────────────────────────────────────── */
 
+/** Una captura del simulador. `after_seq` casa con `pallet_states.after_seq`, así que
+ *  la foto y el punto de la traza de CoG son el mismo instante. */
+export type Snapshot = {
+  id: string;
+  episode_id: string;
+  after_seq: number;
+  view: "top" | "side" | "iso" | "camera";
+  url: string;
+  width: number | null;
+  height: number | null;
+  created_at: string;
+};
+
 export type Blocker = { field: string; a: string; b: string; why: string };
 
 /**
