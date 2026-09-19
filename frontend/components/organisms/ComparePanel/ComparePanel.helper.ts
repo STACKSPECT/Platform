@@ -17,6 +17,8 @@ export type DeltaView = {
   label: string; value: string; unit: string; detail: string; tone: "ok" | "bad" | "muted";
 };
 export type BarView = {
+  /** La ejecución: dos ejecuciones pueden ser del mismo commit y tener el mismo nombre. */
+  key: string;
   label: string;
   segments: Array<{ key: string; n: number; color: string; title: string }>;
 };
@@ -66,6 +68,7 @@ function delta(input: {
 
 function barOf(run: Run, rows: FailureBreakdownRow[] | undefined): BarView {
   return {
+    key: run.id,
     label: runName(run),
     segments: (rows ?? []).map((r) => ({
       key: r.failure, n: r.n, color: failureColor(r.failure), title: failureText(r.failure),
