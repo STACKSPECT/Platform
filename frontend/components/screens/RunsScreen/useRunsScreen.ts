@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useFailureBreakdown, useRuns } from "@/api/hooks";
 import { configured } from "@/lib/supabase";
+import { routes } from "@/lib/routes";
 import {
   DEFAULT_FILTERS, applyFilters, filterOptions, type RunFilters,
 } from "../../organisms/FilterBar";
@@ -11,6 +13,7 @@ const RUN_LIMIT = 200;
 
 /** Une los datos de Ejecuciones y el estado de la pantalla (filtros y selección). */
 export function useRunsScreen() {
+  const router = useRouter();
   const query = useRuns(RUN_LIMIT);
   const runs = query.data ?? [];
 
@@ -44,5 +47,7 @@ export function useRunsScreen() {
     onFilter: (patch: Partial<RunFilters>) => setFilters((f) => ({ ...f, ...patch })),
     onToggle: (id: string) => setSelectedIds((prev) => toggleSelection(prev, id)),
     onClear: () => setSelectedIds([]),
+    hrefFor: routes.run,
+    onOpen: (id: string) => router.push(routes.run(id)),
   };
 }
