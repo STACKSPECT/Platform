@@ -57,13 +57,15 @@ export function LiveScreen() {
               <LegendItem swatch="support" label="soporte" />
             </>}
           >
-            <PalletTopView placements={view.placements} state={view.last} />
+            <PalletTopView placements={view.placements} state={view.last}
+                           size={view.palletSize} />
           </Panel>
           <Panel
             title="Alzado" padded
             aside={<Text variant="caption" tone="faint">{view.sideNote}</Text>}
           >
-            <PalletSideView placements={view.placements} state={view.last} />
+            <PalletSideView placements={view.placements} state={view.last}
+                            size={view.palletSize} />
           </Panel>
         </div>
 

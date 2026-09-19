@@ -149,3 +149,26 @@ export const EVENT_TEXT: Record<string, string> = {
   settle: "asentado",
   fail: "fallo",
 };
+
+/* Tamaño real del palé, en metros.
+ *
+ * El palé puede ser una maqueta a escala: la pinza del Panda abre 80 mm y un europeo es
+ * inagarrable. Dibujarlo siempre a 1200x800 deja todas las cotas mal por el mismo
+ * factor, y el diseño exige que se pinte a escala real con sus medidas.
+ *
+ * Se mira primero `runs.config`, que es su sitio, y después `episodes.metrics`, donde
+ * la simulación lo metió mientras la columna no se podía escribir. El europeo es el
+ * último recurso. */
+export function palletSize(
+  fuente: { config?: Record<string, unknown>; metrics?: Record<string, unknown> } | null,
+): readonly [number, number] {
+  for (const bolsa of [fuente?.config, fuente?.metrics]) {
+    const v = bolsa?.["pallet_size_m"];
+    if (Array.isArray(v) && v.length >= 2
+        && typeof v[0] === "number" && typeof v[1] === "number"
+        && v[0] > 0 && v[1] > 0) {
+      return [v[0], v[1]];
+    }
+  }
+  return [1.2, 0.8];
+}

@@ -16,9 +16,15 @@ red avisa una vez y el episodio sigue.
 """
 
 from .core import RunLog, Supabase, episode_row, load_env
+from .pallet import (
+    TRANSPORT_ACCEL_G,
+    stability_margin,
+    support_polygon,
+)
 from .schema import FAILURES, TASKS, EpisodeResult, RunWriter, git_sha
 
 __all__ = [
     "EpisodeResult", "RunWriter", "RunLog", "Supabase",
     "FAILURES", "TASKS", "git_sha", "episode_row", "load_env",
+    "TRANSPORT_ACCEL_G", "stability_margin", "support_polygon",
 ]

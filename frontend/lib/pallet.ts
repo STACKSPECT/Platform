@@ -9,8 +9,16 @@
 
 import type { Placement } from "@/lib/supabase";
 
+/* Palé europeo, y solo el valor POR DEFECTO. El de verdad puede ser una maqueta a
+   escala —la pinza del Panda abre 80 mm y un europeo es inagarrable—, y su medida viaja
+   con la ejecución en `config.pallet_size_m`. Dibujar a 1200x800 un palé de 210x140
+   deja TODAS las cotas mal por el mismo factor. Se lee con `palletSize()` de ui.ts. */
 export const PALLET_X = 1.2;
 export const PALLET_Y = 0.8;
+
+/** Medidas del palé en metros: [ancho X, fondo Y]. */
+export type PalletSize = readonly [number, number];
+export const PALLET_DEFAULT: PalletSize = [PALLET_X, PALLET_Y];
 /** Altura del palé (tablas y tacos), bajo la superficie donde se apila. */
 export const PALLET_DECK_M = 0.144;
 

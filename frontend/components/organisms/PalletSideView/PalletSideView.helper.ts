@@ -1,6 +1,7 @@
 import type { PalletState, Placement } from "@/lib/supabase";
 import {
-  PALLET_DECK_M, PALLET_X, drawable, lastPlacement, loadHeight,
+  PALLET_DECK_M, PALLET_DEFAULT, drawable, lastPlacement, loadHeight,
+  type PalletSize,
 } from "@/lib/pallet";
 import { mm, stabilityState, type State } from "@/lib/ui";
 
@@ -26,18 +27,20 @@ export type SideViewModel = {
 /** El eje vertical arranca en la superficie del palé (z = 0); el palé se dibuja debajo. */
 export function buildSideView(
   placements: Placement[], state: PalletState | null, height = 290,
+  size: PalletSize = PALLET_DEFAULT,
 ): SideViewModel {
+  const [PX] = size;
   const items = drawable(placements);
   const top = loadHeight(items);
   // Un 25 % de aire sobre la carga para que la cota no toque el borde.
   const zMax = Math.max(top * 1.25, 0.5);
   const scale = (height - PAD.t - PAD.b) / (PALLET_DECK_M + zMax);
-  const width = PALLET_X * scale + PAD.l + PAD.r;
+  const width = PX * scale + PAD.l + PAD.r;
 
-  const X = (x: number) => PAD.l + (x + PALLET_X / 2) * scale;
+  const X = (x: number) => PAD.l + (x + PX / 2) * scale;
   const Z = (z: number) => PAD.t + (zMax - z) * scale;
   const last = lastPlacement(placements);
-  const right = X(PALLET_X / 2);
+  const right = X(PX / 2);
 
   const packages = items.map((p) => ({
     key: p.seq,
@@ -51,8 +54,8 @@ export function buildSideView(
 
   return {
     width, height,
-    deck: { x: X(-PALLET_X / 2), y: Z(0), width: PALLET_X * scale, height: PALLET_DECK_M * scale },
-    deckLabel: { x: X(-PALLET_X / 2) + 10, y: Z(-PALLET_DECK_M / 2) + 4,
+    deck: { x: X(-PX / 2), y: Z(0), width: PX * scale, height: PALLET_DECK_M * scale },
+    deckLabel: { x: X(-PX / 2) + 10, y: Z(-PALLET_DECK_M / 2) + 4,
                  text: `palé ${mm(PALLET_DECK_M, 0)}` },
     packages,
     cog: state
