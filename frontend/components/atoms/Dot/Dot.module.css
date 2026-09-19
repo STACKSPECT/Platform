@@ -8,6 +8,7 @@
 .ok    { background: var(--ok);     --halo: var(--ok); }
 .warn  { background: var(--warn);   --halo: var(--warn); }
 .bad   { background: var(--bad);    --halo: var(--bad); }
+.light { background: var(--text); --halo: var(--text); }
 .muted { background: var(--text-4); --halo: var(--text-4); }
 
 .pulse { box-shadow: 0 0 0 3px color-mix(in srgb, var(--halo) 25%, transparent); }
