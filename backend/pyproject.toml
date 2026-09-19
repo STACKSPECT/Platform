@@ -13,8 +13,12 @@ dependencies = []
 
 # Solo para desarrollar y para CI. El SDK que importa la simulación sigue sin
 # dependencias: nada de esto viaja con él.
+#
+# Clavadas a una versión exacta y no a un mínimo: ruff cambia de reglas por defecto
+# entre versiones menores, así que un `>=` deja que CI se ponga rojo un martes por algo
+# que nadie ha tocado. Subirlas es un commit, y eso es justo lo que se quiere.
 [project.optional-dependencies]
-dev = ["pytest>=8", "ruff>=0.6"]
+dev = ["pytest==9.1.1", "ruff==0.16.8"]
 
 [tool.setuptools]
 packages = ["theker_telemetry"]
