@@ -6,7 +6,7 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 36px;
   padding: var(--page-pad);
 }
 
@@ -29,10 +29,10 @@
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 340px;
-  gap: 28px;
+  gap: 40px;
   align-items: start;
 }
-.content { display: flex; flex-direction: column; gap: 36px; min-width: 0; }
+.content { display: flex; flex-direction: column; gap: 52px; min-width: 0; }
 
 /* Pegada arriba de la pantalla al bajar: el veredicto de cada nivel nunca se pierde de vista. */
 .rail {
@@ -40,7 +40,7 @@
   top: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--page-gap);
+  gap: 28px;
 }
 .guide { padding: 22px 28px; gap: 12px; }
 .note { line-height: 1.5; }
@@ -53,7 +53,7 @@
 /* Pantalla mediana o estrecha: una sola columna y la lista de veredictos va PRIMERO, para que lo
    más importante se vea sin bajar. */
 @media (max-width: 1100px) {
-  .layout { grid-template-columns: minmax(0, 1fr); }
+  .layout { grid-template-columns: minmax(0, 1fr); gap: 32px; }
   /* La lista y la guía se reparten la fila, en vez de una debajo de la otra a todo el ancho. */
   .rail {
     position: static;
@@ -65,5 +65,6 @@
 }
 
 @media (max-width: 860px) {
-  .screen { padding: 16px; gap: 20px; }
+  .screen { padding: 16px; gap: 24px; }
+  .content { gap: 36px; }
 }

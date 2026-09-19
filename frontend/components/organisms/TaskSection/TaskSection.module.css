@@ -1,11 +1,11 @@
 /* Al llegar desde la lista lateral, la tarjeta no queda pegada al borde de la pantalla. */
 .anchor { scroll-margin-top: var(--page-pad); min-width: 0; }
 
-.section { display: flex; flex-direction: column; gap: 16px; }
+.section { display: flex; flex-direction: column; gap: 20px; }
 
 .header { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
 .title { font-size: 20px; font-weight: 700; }
 
 /* Un nivel por fila, a todo el ancho de la columna: así se lee de arriba abajo, nivel a nivel, y
    no queda media pantalla vacía cuando solo hay uno. */
-.grid { display: flex; flex-direction: column; gap: var(--page-gap); }
+.grid { display: flex; flex-direction: column; gap: 32px; }
