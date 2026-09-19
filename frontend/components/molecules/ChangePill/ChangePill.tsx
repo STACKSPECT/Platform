@@ -4,8 +4,9 @@ const ICON: Record<"up" | "down" | "flat", IconName> = {
   up: "arrowUp", down: "arrowDown", flat: "minus",
 };
 
-/** Cuánto ha cambiado algo. La FLECHA dice hacia dónde se movió el valor y el COLOR dice si
- *  eso es bueno o malo: un tiempo que baja es una flecha hacia abajo en verde. */
+/** Cuánto ha cambiado algo. La FLECHA dice si fue a mejor (arriba) o a peor (abajo), y el color lo
+ *  refuerza; hacia dónde se movió el número lo dice el signo del texto. Un tiempo que baja
+ *  es «−0.4 s» con flecha arriba y en verde. */
 export function ChangePill({ direction, tone, children }: {
   direction: "up" | "down" | "flat"; tone: "ok" | "bad" | "muted"; children: string;
 }) {

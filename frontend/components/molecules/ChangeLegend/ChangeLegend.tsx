@@ -2,8 +2,8 @@ import { Text } from "../../atoms";
 import { ChangePill } from "../ChangePill";
 import styles from "./ChangeLegend.module.css";
 
-/** Cómo se lee el resumen: la flecha dice hacia dónde se movió el valor y el color, si eso es
- *  bueno o malo. Sin esto un «▼ −0.4 s» en verde parece un error. */
+/** Cómo se lee el resumen: la flecha y el color dicen si fue a mejor o a peor, y el signo, hacia
+ *  dónde se movió el número. Sin esto un «↑ −0.4 s» en verde parece un error. */
 export function ChangeLegend() {
   return (
     <div className={styles.legend}>
@@ -14,8 +14,8 @@ export function ChangeLegend() {
         <ChangePill direction="flat" tone="muted">igual</ChangePill>
       </div>
       <Text variant="caption" tone="muted" className={styles.text}>
-        Cada cambio se cuenta desde la primera ejecución. La flecha es hacia dónde se movió el
-        valor; el color, si eso es bueno o malo.
+        Cada cambio se cuenta desde la primera ejecución. La flecha y el color dicen si va a
+        mejor o a peor; el signo, si el valor subió o bajó (un tiempo que baja mejora).
       </Text>
     </div>
   );

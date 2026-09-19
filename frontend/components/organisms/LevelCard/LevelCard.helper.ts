@@ -92,7 +92,9 @@ function metricOf(def: MetricDef, runs: Run[]): MetricView | null {
     const tone = changeTone(diff, def.delta.digits, def.lowerIsBetter);
     change = {
       tone,
-      direction: tone === "muted" ? "flat" : diff > 0 ? "up" : "down",
+      // La flecha dice si ha ido a mejor o a peor, no hacia dónde se movió el número: un tiempo
+      // que sube es una flecha hacia abajo en rojo. Hacia dónde se movió lo dice el signo del texto.
+      direction: tone === "muted" ? "flat" : tone === "ok" ? "up" : "down",
       text: `${signedNumber(diff, def.delta.digits)} ${def.delta.unit}`,
     };
   }
