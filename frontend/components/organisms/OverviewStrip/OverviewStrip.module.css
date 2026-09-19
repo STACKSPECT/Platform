@@ -1,5 +1,0 @@
-.strip { padding: 20px 24px; gap: 14px; }
-.rows { display: flex; flex-direction: column; gap: 12px; }
-.row { display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap; }
-.task { font-weight: 700; min-width: 110px; }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; }

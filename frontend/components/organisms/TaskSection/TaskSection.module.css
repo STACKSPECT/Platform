@@ -1,16 +1,11 @@
-/* Al llegar desde un chip, la tarjeta no queda pegada al borde de la pantalla. */
+/* Al llegar desde la lista lateral, la tarjeta no queda pegada al borde de la pantalla. */
 .anchor { scroll-margin-top: var(--page-pad); min-width: 0; }
 
-.section { display: flex; flex-direction: column; gap: 14px; }
+.section { display: flex; flex-direction: column; gap: 16px; }
 
 .header { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
 .title { font-size: 20px; font-weight: 700; }
 
-/* Dos por fila en una pantalla grande, una en la estrecha: cada tarjeta necesita sitio para
-   sus tres columnas (valor, cambio, línea). */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 560px), 1fr));
-  gap: var(--page-gap);
-  align-items: start;
-}
+/* Un nivel por fila, a todo el ancho de la columna: así se lee de arriba abajo, nivel a nivel, y
+   no queda media pantalla vacía cuando solo hay uno. */
+.grid { display: flex; flex-direction: column; gap: var(--page-gap); }

@@ -1,4 +1,4 @@
-.trend { width: 100%; height: 52px; display: block; overflow: visible; }
+.trend { width: 100%; height: 64px; display: block; overflow: visible; }
 
 .ok    { --tone: var(--ok); }
 .bad   { --tone: var(--bad); }

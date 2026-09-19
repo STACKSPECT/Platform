@@ -1,18 +1,18 @@
 "use client";
 
-import { Button, Text } from "../../atoms";
+import { Button, Card, Text } from "../../atoms";
 import {
   ChangeLegend, EmptyState, InfoMessage, Notice, SegmentedControl,
 } from "../../molecules";
-import { KIND_TEXT, OverviewStrip, TaskSection } from "../../organisms";
+import { KIND_TEXT, OverviewPanel, TaskSection } from "../../organisms";
 import { routes } from "@/lib/routes";
 import { KIND_NOTE } from "./DashboardScreen.helper";
 import styles from "./DashboardScreen.module.css";
 import { useDashboardScreen } from "./useDashboardScreen";
 
 /** Resumen de cómo ha ido evolucionando cada tarea, nivel por nivel: es la pantalla principal.
- *  Cada tarjeta responde a «¿vamos mejor?» de un vistazo: un veredicto y, por métrica, dónde
- *  estamos, cuánto ha cambiado desde el principio y cómo ha ido. */
+ *  A la izquierda, una tarjeta por nivel con sus métricas; a la derecha, fija, la lista «De un
+ *  vistazo» con el veredicto de cada nivel y cómo leerlo. Ocupa todo el ancho de la pantalla. */
 export function DashboardScreen() {
   const s = useDashboardScreen();
 
@@ -62,20 +62,25 @@ export function DashboardScreen() {
         />
       </header>
 
-      {s.sections.length > 0 && <OverviewStrip sections={s.sections} />}
+      <div className={styles.layout}>
+        <div className={styles.content}>
+          {s.sections.length === 0 ? (
+            <InfoMessage title={`No hay ejecuciones de la clase «${KIND_TEXT[s.kind]}»`}>
+              Elige otra clase arriba para ver las que sí hay.
+            </InfoMessage>
+          ) : (
+            s.sections.map((t) => <TaskSection key={t.task} view={t} />)
+          )}
+        </div>
 
-      <div className={styles.guide}>
-        <ChangeLegend />
-        {note && <Text variant="caption" tone="warn">{note}</Text>}
+        <aside className={styles.rail} aria-label="Resumen y guía de lectura">
+          {s.sections.length > 0 && <OverviewPanel sections={s.sections} />}
+          <Card className={styles.guide}>
+            <ChangeLegend />
+            {note && <Text variant="caption" tone="warn" className={styles.note}>{note}</Text>}
+          </Card>
+        </aside>
       </div>
-
-      {s.sections.length === 0 ? (
-        <InfoMessage title={`No hay ejecuciones de la clase «${KIND_TEXT[s.kind]}»`}>
-          Elige otra clase arriba para ver las que sí hay.
-        </InfoMessage>
-      ) : (
-        s.sections.map((t) => <TaskSection key={t.task} view={t} />)
-      )}
     </main>
   );
 }

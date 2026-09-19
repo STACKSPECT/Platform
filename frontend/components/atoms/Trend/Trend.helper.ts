@@ -10,10 +10,10 @@ export type TrendGeometry = {
   baselineY: number | null;
 };
 
-const W = 200;
-const H = 52;
-const PAD_X = 8;
-const PAD_Y = 8;
+const W = 400;
+const H = 64;
+const PAD_X = 10;
+const PAD_Y = 10;
 /** Con más puntos que esto los círculos se pisan: solo se marca el último. */
 const MAX_DOTS = 40;
 

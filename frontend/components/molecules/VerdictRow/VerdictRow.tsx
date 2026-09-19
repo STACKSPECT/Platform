@@ -1,5 +1,5 @@
 import { Dot, Text } from "../../atoms";
-import styles from "./VerdictChip.module.css";
+import styles from "./VerdictRow.module.css";
 
 type Props = {
   href: string;
@@ -15,14 +15,16 @@ type Props = {
   onSelect?: () => void;
 };
 
-/** Un nivel y cómo va, en una línea. Es un enlace: lleva a su tarjeta con el detalle. */
-export function VerdictChip({ href, label, verdict, tone, detail, onSelect }: Props) {
+/** Un nivel y cómo va, en una fila de la lista. Es un enlace: lleva a su tarjeta. */
+export function VerdictRow({ href, label, verdict, tone, detail, onSelect }: Props) {
   return (
-    <a href={href} className={styles.chip} title={detail}
+    <a href={href} className={styles.row}
        onClick={onSelect && ((e) => { e.preventDefault(); onSelect(); })}>
       <Dot tone={tone} />
       <Text variant="body" size="md" className={styles.label}>{label}</Text>
-      <Text variant="body" size="sm" tone={tone === "muted" ? "faint" : tone}>{verdict}</Text>
+      <Text variant="body" size="md" tone={tone === "muted" ? "faint" : tone}
+            className={styles.verdict}>{verdict}</Text>
+      <Text variant="caption" tone="faint" className={styles.detail}>{detail}</Text>
     </a>
   );
 }

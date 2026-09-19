@@ -26,4 +26,4 @@ export { ChangePill } from "./ChangePill";
 export { MetricTrend } from "./MetricTrend";
 export type { MetricChange } from "./MetricTrend";
 export { ChangeLegend } from "./ChangeLegend";
-export { VerdictChip } from "./VerdictChip";
+export { VerdictRow } from "./VerdictRow";

@@ -23,23 +23,24 @@ type Props = {
   chartLabel: string;
 };
 
-/** Una métrica de una serie: dónde está ahora, cuánto ha cambiado desde el principio y cómo ha
- *  ido en el camino. Las tres cosas juntas responden a «¿vamos mejor?» de un vistazo. */
+/** Una métrica de una serie, como un mosaico: dónde está ahora, cuánto ha cambiado desde el
+ *  principio y cómo ha ido en el camino. Las tres cosas juntas responden a «¿vamos mejor?» de un
+ *  vistazo. */
 export function MetricTrend({
   label, value, unit, change, note, points, tone, dashed, chartLabel,
 }: Props) {
   return (
-    <div className={styles.row}>
-      <div className={styles.now}>
-        <Text variant="label" tone="muted">{label}</Text>
-        <Value value={value} unit={unit} size="lg" />
-      </div>
+    <div className={styles.tile}>
+      <Text variant="label" tone="muted">{label}</Text>
+      <Value value={value} unit={unit} size="lg" />
+
       <div className={styles.change}>
         {change
           ? <ChangePill direction={change.direction} tone={change.tone}>{change.text}</ChangePill>
           : <Text tone="faint">sin comparación</Text>}
         <Text variant="caption" tone="faint">{note}</Text>
       </div>
+
       <div className={styles.chart}>
         <Trend points={points} tone={tone} dashed={dashed} label={chartLabel} />
       </div>

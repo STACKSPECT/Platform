@@ -1,1 +1,0 @@
-export { OverviewStrip } from "./OverviewStrip";

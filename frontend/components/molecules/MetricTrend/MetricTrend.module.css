@@ -1,19 +1,15 @@
-.row {
-  display: grid;
-  grid-template-columns: minmax(130px, 1fr) minmax(130px, 1fr) minmax(150px, 1.3fr);
-  align-items: center;
-  gap: 16px 24px;
-  padding: 18px 0;
-  border-bottom: 1px solid var(--border-soft);
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 20px 22px 18px;
+  background: var(--row-alt);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-2);
 }
-.row:last-child { border-bottom: 0; }
 
-.now { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.change { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; }
-.chart { min-width: 0; }
+.change { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
 
-/* Estrecho: la línea baja a su propia fila en vez de aplastarse. */
-@media (max-width: 720px) {
-  .row { grid-template-columns: 1fr 1fr; }
-  .chart { grid-column: 1 / -1; }
-}
+/* La línea se queda abajo aunque los mosaicos de una fila tengan alturas distintas. */
+.chart { margin-top: auto; padding-top: 10px; }

@@ -21,4 +21,4 @@ export { LevelCard, buildLevelCard, kindOf, KIND_TEXT } from "./LevelCard";
 export type { DataKind, LevelCardView } from "./LevelCard";
 export { TaskSection, anchorOf } from "./TaskSection";
 export type { TaskSectionView } from "./TaskSection";
-export { OverviewStrip } from "./OverviewStrip";
+export { OverviewPanel } from "./OverviewPanel";
