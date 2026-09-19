@@ -28,6 +28,7 @@ percepción. Este repo solo sabe de episodios, métricas y pantallas.
 backend/                 SQL + SDK. Supabase ES el backend; no hay servidor propio.
   sql/001_schema.sql       tablas, vistas y RLS
   sql/002_design.sql       columnas y vistas que pide el diseño
+  sql/003_snapshots.sql    las fotos del palé (solo la URL; los PNG van a Storage)
   theker_telemetry/        el SDK que importa quien produce episodios
     schema.py                EpisodeResult, FAILURES, TASKS, RunWriter
     core.py                  cliente PostgREST y RunLog
@@ -36,7 +37,7 @@ backend/                 SQL + SDK. Supabase ES el backend; no hay servidor prop
   pyproject.toml
 
 frontend/                Next.js 16. Lee Supabase con la clave anon, bajo RLS.
-  app/                     rutas: / (Live), /runs
+  app/                     rutas: / (Live), /runs, /runs/[id], /runs/[id]/[seed]
   api/clients/             una función por endpoint de PostgREST
   api/hooks/               los mismos, envueltos en TanStack Query
   components/              atoms / organisms / screens
@@ -49,7 +50,17 @@ docs/
   BRIEFING-observabilidad.md   qué se construye y por qué
   API.md                       el contrato: endpoints, tipos y vocabularios
   design/                      los 11 tableros del diseño, a 1440 px
+  img/                         capturas y variantes de marca que usa el README
+
+README.md                cara pública del repo, en inglés: requisitos, instalación,
+                         desarrollo, uso, dependencias con su auditoría de licencias.
+CONTRIBUTING.md          el flujo real: ramas, commits, comprobaciones y qué exige CI.
+LICENSE                  MIT, 2026 STACKSPECT.
 ```
+
+Los tres anteriores están **en inglés** a propósito, y son los únicos: son lo que lee
+quien llega de fuera. Todo lo demás —este documento, `docs/`, los comentarios— sigue en
+castellano.
 
 **La dependencia va en un solo sentido.** La simulación importa `theker_telemetry`;
 esta plataforma no sabe que MuJoCo existe. Por eso el esquema de métricas vive aquí y
@@ -64,6 +75,7 @@ simulación no se lleva por delante la observabilidad.
 # 1. Esquema: pegar en el SQL editor de Supabase, en orden. Son idempotentes.
 backend/sql/001_schema.sql
 backend/sql/002_design.sql
+backend/sql/003_snapshots.sql
 
 # 2. Credenciales. .env en la raíz (gitignorado):
 #    SUPABASE_URL=https://xxxx.supabase.co
@@ -229,7 +241,9 @@ evolución en vez de borrón y cuenta nueva.
   Ningún otro archivo (CSS, TS, TSX) lleva `#hex`, `rgb()`, `hsl()` ni un color con nombre;
   consume `var(--…)`. Un color con transparencia es otra variable de ese archivo, calculada
   con `color-mix` desde la base. `npm run lint` lo comprueba (`scripts/check-colors.mjs`).
-- Nombres de código en inglés; comentarios y documentos en castellano.
+- Nombres de código en inglés; comentarios y documentos en castellano. Las tres
+  excepciones son `README.md`, `CONTRIBUTING.md` y `LICENSE`, que van en inglés porque
+  son lo que lee quien llega de fuera (§2).
 - Commits pequeños, con números cuando toquen comportamiento.
 - El diseño de referencia es `docs/design/observality-platform-design.html`: un bundle
   autoextraíble con 11 tableros. Se abre en el navegador. Manda en la **estructura y el
@@ -254,7 +268,8 @@ evolución en vez de borrón y cuenta nueva.
   los tres estados no felices. El tamaño del palé sale de `config.pallet_size_m` vía
   `palletSize()`: **no** se dibuja siempre a 1200x800, porque el palé real puede ser una
   maqueta a escala y entonces todas las cotas saldrían mal por el mismo factor.
-- **Pendiente:** las rutas `/runs/[id]` y `/runs/[id]/[seed]`.
+- **Detalle de ejecución:** `/runs/[id]` y `/runs/[id]/[seed]` ya están, sobre el mismo
+  `EpisodeDashboard` que Live: cambia de dónde salen los datos, no cómo se ven.
 
 Aviso de Next 16: `params` es una Promise (`const { id } = await params`) y existen los
 tipos globales `PageProps<'/runs/[id]'>`. Hay documentación offline en
