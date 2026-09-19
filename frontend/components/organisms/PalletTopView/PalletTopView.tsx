@@ -20,7 +20,7 @@ export function PalletTopView({ placements, state }: Props) {
         <g key={key}>
           <SceneRect variant={variant} {...box} />
           {label && (
-            <SceneLabel x={box.x + 8} y={box.y + box.height / 2 + 4} text={label} tone="muted" />
+            <SceneLabel x={box.x + box.width / 2} y={box.y - 7} text={label} anchor="middle" tone="muted" />
           )}
         </g>
       ))}

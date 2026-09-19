@@ -1,2 +1,2 @@
 .status { display: inline-flex; align-items: center; gap: 10px; }
-.status > :last-child { font-size: 13px; letter-spacing: 0.16em; }
+.status > :last-child { font-size: 14px; font-weight: 600; }

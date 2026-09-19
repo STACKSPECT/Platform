@@ -1,5 +1,5 @@
 .item { display: inline-flex; align-items: center; gap: 6px; }
-.swatch { width: 14px; height: 10px; border: 1px solid; display: inline-block; }
+.swatch { width: 14px; height: 10px; border: 1px solid; border-radius: 3px; display: inline-block; }
 .planned { border-style: dashed; border-color: var(--text-4); }
 .last    { border-color: var(--select); background: var(--select-fill); }
 .support { border-style: dashed; border-color: var(--ok); }

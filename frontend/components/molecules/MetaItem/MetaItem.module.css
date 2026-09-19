@@ -1,2 +1,2 @@
 .item { display: inline-flex; align-items: baseline; gap: 8px; white-space: nowrap; }
-.item > :last-child { font-size: 15px; }
+.item > :last-child { font-size: 14.5px; font-weight: 500; }

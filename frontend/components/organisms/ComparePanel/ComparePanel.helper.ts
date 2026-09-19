@@ -81,9 +81,11 @@ function barOf(run: Run, rows: FailureBreakdownRow[] | undefined): BarView {
 
 /** `comparability()` devuelve la tarea como identificador; en pantalla va en castellano. */
 function translate(b: Blocker): Blocker {
+  // El campo llega en versal («TAREA»): en pantalla va en minúscula normal, como el resto.
+  const field = b.field.charAt(0) + b.field.slice(1).toLowerCase();
   return b.field === "TAREA"
-    ? { ...b, a: TASK_TEXT[b.a] ?? b.a, b: TASK_TEXT[b.b] ?? b.b }
-    : b;
+    ? { ...b, field, a: TASK_TEXT[b.a] ?? b.a, b: TASK_TEXT[b.b] ?? b.b }
+    : { ...b, field };
 }
 
 export function buildComparison(pair: ComparePair | null): ComparisonView {

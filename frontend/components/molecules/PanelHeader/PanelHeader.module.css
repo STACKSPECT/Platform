@@ -1,11 +1,12 @@
 .header {
-  min-height: 44px;
+  min-height: 56px;
   flex-shrink: 0;
-  padding: 0 28px;
+  padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   border-bottom: 1px solid var(--border-soft);
 }
+.title { font-weight: 600; }
 .aside { display: flex; align-items: center; gap: 16px; min-width: 0; }

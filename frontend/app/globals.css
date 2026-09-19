@@ -1,7 +1,24 @@
 /*
  * Estilos globales de la plataforma. Los colores NO se definen aquí: viven todos en
  * styles/colors.css, y este archivo (como cualquier otro) solo los consume con `var(--…)`.
+ *
+ * Lenguaje visual: limpio y amable. Superficies blancas (o casi negras) con esquinas
+ * suaves, mucho aire, poco borde y ninguna sombra que grite. Texto en una sans redondeada;
+ * magnitudes en una mono suave, con cifras de ancho fijo para que no bailen en vivo.
  */
+
+:root {
+  /* Radios: tres tamaños y nada más. Los controles pequeños, las tarjetas y lo grande. */
+  --radius-1: 8px;
+  --radius-2: 12px;
+  --radius-3: 16px;
+  --radius-pill: 999px;
+
+  /* Espaciado de página: el aire que rodea las pantallas. */
+  --page-gap: 20px;
+  --page-pad: 32px;
+  --topbar-h: 64px;
+}
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -11,45 +28,54 @@ body {
   min-height: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-plex-sans), system-ui, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 14px;
-  line-height: 1.4;
+  line-height: 1.45;
   -webkit-font-smoothing: antialiased;
 }
 
-a { color: var(--link); text-decoration: none; }
-a:hover { color: var(--link-hover); }
+/* Un cambio de tema se nota, pero no deslumbra: los colores se funden. */
+body, header, main, section, table, td, th, select, button, label {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+a {
+  color: var(--link);
+  text-decoration: underline;
+  text-decoration-color: var(--border-hard);
+  text-underline-offset: 3px;
+}
+a:hover { color: var(--link-hover); text-decoration-color: currentColor; }
 
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
 
-:focus-visible { outline: 2px solid var(--select); outline-offset: 1px; }
+:focus-visible { outline: 2px solid var(--select); outline-offset: 2px; border-radius: 4px; }
 
-/* ── piezas compartidas ─────────────────────────────────────────────────── */
+/* ── piezas heredadas ────────────────────────────────────────────────────
+   Las usan Episode.tsx y Runs.tsx, que esperan a las rutas de detalle. Los componentes
+   nuevos no las necesitan: llevan su propio módulo. */
 
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
+  border-radius: var(--radius-3);
+  box-shadow: var(--elev-1);
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
-/* Etiquetas y cabeceras: condensada, versal, muy espaciada. */
 .label {
-  font-family: var(--font-plex-condensed), var(--font-plex-sans), sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
   color: var(--text-3);
 }
 
-.mono { font-family: var(--font-plex-mono), ui-monospace, monospace; }
+.mono { font-family: var(--font-mono), ui-monospace, monospace; }
 
-/* Toda magnitud física. Monoespaciada y con cifras de ancho fijo para que al
-   refrescarse en vivo las columnas no bailen. */
 .num {
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-family: var(--font-mono), ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
 }
 

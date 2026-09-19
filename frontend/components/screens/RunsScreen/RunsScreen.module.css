@@ -3,12 +3,12 @@
    la comparativa. Si la ventana es tan baja que ni con sus alturas mínimas caben las tres
    zonas, scrollea la propia pantalla: mejor eso que recortar contenido inalcanzable. */
 .screen {
-  height: calc(100vh - 48px);
-  height: calc(100dvh - 48px);
+  height: calc(100vh - var(--topbar-h));
+  height: calc(100dvh - var(--topbar-h));
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 32px;
+  gap: var(--page-gap);
+  padding: var(--page-pad);
   overflow-y: auto;
 }
 

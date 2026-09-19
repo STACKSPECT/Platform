@@ -1,20 +1,22 @@
 .button {
   font: inherit;
-  font-size: 13px;
+  font-size: 13.5px;
+  font-weight: 500;
   cursor: pointer;
   background: none;
   border: 0;
   padding: 0;
 }
-.button:disabled { cursor: not-allowed; opacity: 0.5; }
+.button:disabled { cursor: not-allowed; opacity: 0.45; }
 
-/* El azul acero marca interacción, y esto es interacción. */
-.link { color: var(--select); }
-.link:hover:not(:disabled) { color: var(--link); text-decoration: underline; }
+.link { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+.link:hover:not(:disabled) { color: var(--link-hover); }
 
 .outline {
   color: var(--text);
-  border: 1px solid var(--border-hard);
-  padding: 6px 12px;
+  background: var(--surface);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-1);
+  padding: 8px 16px;
 }
-.outline:hover:not(:disabled) { border-color: var(--select); color: var(--select); }
+.outline:hover:not(:disabled) { background: var(--row-hover); }

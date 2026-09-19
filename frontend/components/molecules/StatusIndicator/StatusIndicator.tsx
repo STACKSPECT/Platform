@@ -8,7 +8,7 @@ export function StatusIndicator({ label, tone, pulse }: {
   return (
     <span className={styles.status} role="status">
       <Dot tone={tone} pulse={pulse} />
-      <Text variant="label" tone={textToneFor(tone)}>{label}</Text>
+      <Text variant="body" tone={textToneFor(tone)}>{label}</Text>
     </span>
   );
 }

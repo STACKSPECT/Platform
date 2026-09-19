@@ -8,12 +8,10 @@
 .th:last-child, .td:last-child { padding-right: 28px; }
 
 .th {
-  height: 44px;
-  font-family: var(--font-plex-condensed), var(--font-plex-sans), sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
+  height: 46px;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
   color: var(--text-3);
   position: sticky;
   top: 0;
@@ -22,7 +20,7 @@
   /* Sombra y no borde: con border-collapse el borde no viaja con la cabecera pegajosa. */
   box-shadow: inset 0 -1px 0 var(--border);
 }
-.td { height: 46px; border-bottom: 1px solid var(--border-soft); }
+.td { height: 54px; border-bottom: 1px solid var(--border-soft); }
 
 .left { text-align: left; }
 .right { text-align: right; }
