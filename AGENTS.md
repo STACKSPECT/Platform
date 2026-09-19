@@ -69,7 +69,9 @@ backend/sql/002_design.sql
 pip install -e backend
 
 # 4. Datos con los que ver la interfaz
-python backend/seed/palletizing.py
+python backend/seed/palletizing.py            # histórico sembrado, 6 ejecuciones
+python backend/seed/ejemplo_contrato.py       # una entrada que toca TODO el contrato
+python backend/seed/humo_live.py              # monta un palé en vivo: comprueba Live
 python backend/backfill.py --runs-dir <repo de la simulación>/simulation/runs
 
 # 5. Front

@@ -42,3 +42,7 @@ core
 
 # CodeGraph
 .codegraph/
+
+# Ejecuciones escritas por RunLog. El jsonl es la fuente de verdad en la maquina
+# que lo produce, no algo que se versione: son datos, no codigo.
+runs/

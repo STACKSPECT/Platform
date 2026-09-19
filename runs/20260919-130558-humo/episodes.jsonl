@@ -1,1 +1,0 @@
-{"seed": 37, "level": 2, "n_objects": 10, "n_placed": 8, "n_misrouted": 0, "success": false, "duration_s": 19.8, "failure": "stack_collapse", "oracle": false, "git_sha": "af7ec99", "task": "palletizing", "metrics": {"score": 0.8, "cog_offset_xy": 0.0514}}
