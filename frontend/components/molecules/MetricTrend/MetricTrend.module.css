@@ -13,3 +13,6 @@
 
 /* La línea se queda abajo aunque los mosaicos de una fila tengan alturas distintas. */
 .chart { margin-top: auto; padding-top: 10px; }
+
+/* El icono de ayuda pega con la etiqueta y no empuja el resto del mosaico. */
+.label { display: flex; align-items: center; gap: 2px; margin: -3px 0 -3px; }

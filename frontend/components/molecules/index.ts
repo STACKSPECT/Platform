@@ -28,3 +28,4 @@ export type { MetricChange } from "./MetricTrend";
 export { ChangeLegend } from "./ChangeLegend";
 export { VerdictRow } from "./VerdictRow";
 export { SnapshotView } from "./SnapshotView";
+export { InfoTip } from "./InfoTip";

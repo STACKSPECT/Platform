@@ -1,5 +1,6 @@
 import { Text, Trend, Value, type TrendPoint } from "../../atoms";
 import { ChangePill } from "../ChangePill";
+import { InfoTip } from "../InfoTip";
 import styles from "./MetricTrend.module.css";
 
 export type MetricChange = {
@@ -11,6 +12,8 @@ export type MetricChange = {
 
 type Props = {
   label: string;
+  /** Qué mide y cómo se lee, en dos o tres frases. */
+  help?: string;
   value: string;
   unit: string;
   /** `null` con un solo dato: no hay contra qué comparar. */
@@ -27,11 +30,14 @@ type Props = {
  *  principio y cómo ha ido en el camino. Las tres cosas juntas responden a «¿vamos mejor?» de un
  *  vistazo. */
 export function MetricTrend({
-  label, value, unit, change, note, points, tone, dashed, chartLabel,
+  label, help, value, unit, change, note, points, tone, dashed, chartLabel,
 }: Props) {
   return (
     <div className={styles.tile}>
-      <Text variant="label" tone="muted">{label}</Text>
+      <div className={styles.label}>
+        <Text variant="label" tone="muted">{label}</Text>
+        {help && <InfoTip label={`Qué es: ${label}`}>{help}</InfoTip>}
+      </div>
       <Value value={value} unit={unit} size="lg" />
 
       <div className={styles.change}>

@@ -1,5 +1,5 @@
 import { Card, Text } from "../../atoms";
-import { VerdictRow } from "../../molecules";
+import { InfoTip, VerdictRow } from "../../molecules";
 import type { TaskSectionView } from "../TaskSection";
 import { anchorOf } from "../TaskSection";
 import { scrollToAnchor } from "./OverviewPanel.helper";
@@ -11,7 +11,13 @@ import styles from "./OverviewPanel.module.css";
 export function OverviewPanel({ sections }: { sections: TaskSectionView[] }) {
   return (
     <Card className={styles.panel}>
-      <Text variant="body" size="lg" className={styles.title}>De un vistazo</Text>
+      <div className={styles.head}>
+        <Text variant="body" size="lg" className={styles.title}>De un vistazo</Text>
+        <InfoTip label="Qué es «De un vistazo»">
+          Un veredicto por cada nivel: cuántas de sus métricas van a mejor o a peor desde la primera
+          ejecución. Pulsa una fila para ir a su tarjeta, con las curvas.
+        </InfoTip>
+      </div>
       <div className={styles.tasks}>
         {sections.map((t) => (
           <div key={t.task} className={styles.task}>

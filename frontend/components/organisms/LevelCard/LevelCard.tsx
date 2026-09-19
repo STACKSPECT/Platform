@@ -1,6 +1,8 @@
 import { Badge, Card, Text } from "../../atoms";
-import { MetricTrend } from "../../molecules";
-import { KIND_TEXT, type LevelCardView } from "./LevelCard.helper";
+import { InfoTip, MetricTrend } from "../../molecules";
+import {
+  EXCLUDED_HELP, KIND_HELP, KIND_TEXT, SEEDS_HELP, VERDICT_HELP, type LevelCardView,
+} from "./LevelCard.helper";
 import styles from "./LevelCard.module.css";
 
 /** Cómo va un nivel de una tarea: un veredicto arriba y, debajo, cada métrica con dónde está,
@@ -13,30 +15,42 @@ export function LevelCard({ view }: { view: LevelCardView }) {
       <header className={styles.header}>
         <div className={styles.title}>
           <Text variant="body" size="lg" className={styles.name}>{view.title}</Text>
-          <Text variant="caption" tone="faint">
-            {[view.meta, view.seeds].filter(Boolean).join(" · ")}
-          </Text>
+          <span className={styles.meta}>
+            <Text variant="caption" tone="faint">
+              {[view.meta, view.seeds].filter(Boolean).join(" · ")}
+            </Text>
+            {view.seeds && <InfoTip label="Qué son las semillas">{SEEDS_HELP}</InfoTip>}
+          </span>
         </div>
         <div className={styles.tags}>
           {view.kind !== "measured" && (
-            <Badge tone={view.kind}>{KIND_TEXT[view.kind]}</Badge>
-          )}
-          {view.excluded > 0 && (
-            <span title="Estas ejecuciones usaron otro rango de semillas y no se comparan con las de la curva: con otras semillas se compara suerte, no código.">
-              <Badge tone="warn">+{view.excluded} con otras semillas</Badge>
+            <span className={styles.tag}>
+              <Badge tone={view.kind}>{KIND_TEXT[view.kind]}</Badge>
+              <InfoTip label={`Qué son los datos ${KIND_TEXT[view.kind].toLowerCase()}`}>
+                {KIND_HELP[view.kind]}
+              </InfoTip>
             </span>
           )}
-          <span title={view.verdict.detail}>
+          {view.excluded > 0 && (
+            <span className={styles.tag}>
+              <Badge tone="warn">+{view.excluded} con otras semillas</Badge>
+              <InfoTip label="Por qué se dejan fuera estas ejecuciones">{EXCLUDED_HELP}</InfoTip>
+            </span>
+          )}
+          <span className={styles.tag}>
             <Badge tone={view.verdict.tone === "muted" ? "neutral" : view.verdict.tone}>
               {view.verdict.label}
             </Badge>
+            <InfoTip label="Cómo se calcula el veredicto">
+              {`${view.verdict.detail}. ${VERDICT_HELP}`}
+            </InfoTip>
           </span>
         </div>
       </header>
 
       <div className={styles.body}>
         {view.metrics.map((m) => (
-          <MetricTrend key={m.key} label={m.label} value={m.value} unit={m.unit}
+          <MetricTrend key={m.key} label={m.label} help={m.help} value={m.value} unit={m.unit}
                        change={m.change} note={m.note} points={m.points} tone={m.tone}
                        dashed={dashed} chartLabel={m.chartLabel} />
         ))}

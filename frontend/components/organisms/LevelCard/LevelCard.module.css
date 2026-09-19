@@ -10,7 +10,9 @@
 }
 .title { display: flex; align-items: baseline; gap: 12px; min-width: 0; flex-wrap: wrap; }
 .name { font-weight: 700; }
-.tags { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tags { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; }
+.tag { display: inline-flex; align-items: center; gap: 2px; }
+.meta { display: inline-flex; align-items: center; gap: 2px; }
 
 /* Las métricas se reparten el ancho de LA TARJETA, no el de la ventana: una columna en una tarjeta
    estrecha, 2×2 en una media y todas en fila en una muy ancha. Así nunca queda un mosaico huérfano

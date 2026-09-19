@@ -2,9 +2,9 @@
 
 import { Button, Card, Text } from "../../atoms";
 import {
-  ChangeLegend, EmptyState, InfoMessage, Notice, SegmentedControl,
+  ChangeLegend, EmptyState, InfoMessage, InfoTip, Notice, SegmentedControl,
 } from "../../molecules";
-import { KIND_TEXT, OverviewPanel, TaskSection } from "../../organisms";
+import { KIND_HELP, KIND_TEXT, OverviewPanel, TaskSection } from "../../organisms";
 import { routes } from "@/lib/routes";
 import { KIND_NOTE } from "./DashboardScreen.helper";
 import styles from "./DashboardScreen.module.css";
@@ -53,13 +53,20 @@ export function DashboardScreen() {
             Cómo ha ido cambiando cada tarea, ejecución a ejecución, nivel por nivel.
           </Text>
         </div>
-        <SegmentedControl
-          name="clase-de-datos" label="Clase de datos"
-          value={s.kind} onChange={s.onKind}
-          options={s.options.map(({ k, count }) => ({
-            value: k, label: KIND_TEXT[k], count,
-          }))}
-        />
+        <div className={styles.controls}>
+          <SegmentedControl
+            name="clase-de-datos" label="Clase de datos"
+            value={s.kind} onChange={s.onKind}
+            options={s.options.map(({ k, count }) => ({
+              value: k, label: KIND_TEXT[k], count,
+            }))}
+          />
+          <InfoTip label="Qué son las clases de datos">
+            {(["measured", "oracle", "synthetic"] as const).map((k) => (
+              <p key={k}><strong>{KIND_TEXT[k]}.</strong> {KIND_HELP[k]}</p>
+            ))}
+          </InfoTip>
+        </div>
       </header>
 
       <div className={styles.layout}>

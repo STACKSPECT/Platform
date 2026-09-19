@@ -14,6 +14,27 @@ export const KIND_TEXT: Record<DataKind, string> = {
   measured: "Medidos", oracle: "Oracle", synthetic: "Sembrados",
 };
 
+/** Qué significa cada clase de datos, para el icono de ayuda de su etiqueta. */
+export const KIND_HELP: Record<DataKind, string> = {
+  measured: "Ejecuciones medidas de verdad: el robot percibe, planifica y coloca por sí mismo.",
+  oracle: "La percepción se sustituye por las poses reales de los paquetes, así que estas ejecuciones " +
+    "no miden la visión. Nunca se mezclan con las medidas en una misma curva.",
+  synthetic: "Datos sembrados para poder ver la interfaz, no medidos. Nunca se mezclan con las " +
+    "medidas en una misma curva.",
+};
+
+export const EXCLUDED_HELP =
+  "Estas ejecuciones usaron otro rango de semillas y no entran en la curva: con otras semillas se " +
+  "compara suerte, no código.";
+
+export const SEEDS_HELP =
+  "La semilla fija cómo se reparten los paquetes en un episodio. Solo se comparan ejecuciones que " +
+  "usaron las mismas semillas; la curva usa el rango de semillas con más ejecuciones.";
+
+export const VERDICT_HELP =
+  "Resume la tarjeta en una palabra según cuántas métricas van a mejor y cuántas a peor desde la " +
+  "primera ejecución: Mejora, Empeora, Mixto (unas y otras) o Sin cambios.";
+
 export function kindOf(run: Run): DataKind {
   return run.synthetic ? "synthetic" : run.oracle ? "oracle" : "measured";
 }
@@ -21,6 +42,7 @@ export function kindOf(run: Run): DataKind {
 export type MetricView = {
   key: string;
   label: string;
+  help: string;
   value: string;
   unit: string;
   change: MetricChange | null;
@@ -58,20 +80,32 @@ type MetricDef = {
   delta: { scale: number; digits: number; unit: string };
   /** Unidad que se muestra junto al valor cuando el formato no la trae en un solo token. */
   unit?: string;
+  /** Qué mide, cómo se calcula y qué es «mejor». */
+  help: string;
 };
 
 /** Lo que se mide de cada serie. La flecha «mejor» es una decisión de dominio: un tiempo o un
  *  error que bajan mejoran; un éxito o un margen que suben también. */
 const METRICS: MetricDef[] = [
   { key: "success", label: "Tasa de éxito", pick: (r) => r.success_rate, lowerIsBetter: false,
-    format: (v) => pct(v), delta: { scale: 100, digits: 0, unit: "puntos" } },
+    format: (v) => pct(v), delta: { scale: 100, digits: 0, unit: "puntos" },
+    help: "De los episodios de cada ejecución, cuántos terminan con éxito: todos los paquetes " +
+      "colocados y sin ningún fallo. Cada punto de la curva es una ejecución. Más es mejor." },
   { key: "cycle", label: "Tiempo de ciclo", pick: (r) => r.median_cycle_s, lowerIsBetter: true,
-    format: (v) => seconds(v), delta: { scale: 1, digits: 1, unit: "s" }, unit: "s / paquete" },
+    format: (v) => seconds(v), delta: { scale: 1, digits: 1, unit: "s" }, unit: "s / paquete",
+    help: "Lo que tarda el robot en colocar un paquete, en la mediana de la ejecución. Se usa la " +
+      "mediana y no la media: un episodio que se derrumba enseguida no debe hacer parecer " +
+      "rápida una ejecución que va mal. Menos es mejor." },
   { key: "stability", label: "Margen de estabilidad", pick: (r) => r.median_stability_m,
     lowerIsBetter: false, format: (v) => signedMm(v),
-    delta: { scale: 1000, digits: 0, unit: "mm" } },
+    delta: { scale: 1000, digits: 0, unit: "mm" },
+    help: "Cuánto cae el centro de gravedad de la pila hacia dentro del polígono que la sostiene, " +
+      "en la mediana. Positivo, el centro está sobre el apoyo y la pila es estable; cuanto " +
+      "mayor, más holgura antes de volcar. Más es mejor." },
   { key: "error", label: "Error de colocación", pick: (r) => r.median_error_xy_m,
-    lowerIsBetter: true, format: (v) => mm(v), delta: { scale: 1000, digits: 1, unit: "mm" } },
+    lowerIsBetter: true, format: (v) => mm(v), delta: { scale: 1000, digits: 1, unit: "mm" },
+    help: "Distancia, en el plano del palé, entre donde el plan quería cada paquete y donde acabó, " +
+      "en la mediana. Menos es mejor." },
 ];
 
 const byDate = (a: Run, b: Run) => Date.parse(a.started_at) - Date.parse(b.started_at);
@@ -103,6 +137,7 @@ function metricOf(def: MetricDef, runs: Run[]): MetricView | null {
   return {
     key: def.key,
     label: def.label,
+    help: def.help,
     value,
     unit: def.unit ?? unit,
     change,
