@@ -11,11 +11,17 @@ type Props = {
   /** Ya hay las que se pueden comparar: las casillas sin marcar se bloquean. */
   selectionFull: boolean;
   onToggle: (id: string) => void;
+  /** A dónde lleva una fila: la URL de su detalle. */
+  hrefFor: (id: string) => string;
+  /** Pulsar la fila (fuera de la casilla y del enlace) abre el detalle. */
+  onOpen: (id: string) => void;
 };
 
-/** La lista de ejecuciones. La selección para comparar va en la primera columna: el resto
- *  de la fila queda libre para navegar al detalle. */
-export function RunsTable({ runs, selectedIds, selectionFull, onToggle }: Props) {
+/** La lista de ejecuciones. La selección para comparar va en la primera columna; pulsar el
+ *  resto de la fila abre el detalle de esa ejecución. */
+export function RunsTable({
+  runs, selectedIds, selectionFull, onToggle, hrefFor, onOpen,
+}: Props) {
   if (!runs.length) {
     return (
       <Card className={styles.card}>
@@ -47,7 +53,8 @@ export function RunsTable({ runs, selectedIds, selectionFull, onToggle }: Props)
         <tbody>
           {buildRows(runs, selectedIds).map(({ view, selected }) => (
             <RunRow key={view.id} view={view} selected={selected}
-                  selectionBlocked={selectionFull && !selected} onToggle={onToggle} />
+                    selectionBlocked={selectionFull && !selected} onToggle={onToggle}
+                    href={hrefFor(view.id)} onOpen={() => onOpen(view.id)} />
           ))}
         </tbody>
       </Table>

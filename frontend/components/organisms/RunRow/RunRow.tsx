@@ -10,9 +10,10 @@ type Props = {
   /** No se puede marcar: ya hay dos y esta no es una de ellas. */
   selectionBlocked?: boolean;
   onToggle: (id: string) => void;
-  /** Cuando exista el detalle del run: el commit pasa a enlace. */
+  /** El commit pasa a enlace al detalle (es lo que alcanza el teclado). */
   href?: string;
-  /** Y la fila entera pulsable. La casilla ya corta la propagación para no disparar esto. */
+  /** Y la fila entera pulsable con el ratón. La casilla y el enlace cortan la propagación
+   *  para no disparar esto además de lo suyo. */
   onOpen?: () => void;
 };
 
@@ -30,7 +31,7 @@ export function RunRow({ view: v, selected, selectionBlocked, onToggle, href, on
       <Td>
         <span className={styles.commit}>
           <Text variant="num" size="lg">
-            {href ? <Link href={href}>{v.commit}</Link> : v.commit}
+            {href ? <Link href={href} onClick={(e) => e.stopPropagation()}>{v.commit}</Link> : v.commit}
           </Text>
           {v.flag && <RunFlag kind={v.flag} />}
         </span>
