@@ -43,8 +43,13 @@ export function LiveScreen() {
     <EpisodeDashboard
       view={s.view}
       banner={s.stale ? (
-        <Banner message="Conexión perdida. Reintentando." detail={s.staleDetail}
-                actionLabel="Reintentar ahora" onAction={s.retry} />
+        s.silent ? (
+          <Banner message="El episodio no envía datos desde hace un rato."
+                  detail={s.staleDetail ? `${s.staleDetail} · la conexión va bien; puede que el proceso se haya interrumpido` : undefined} />
+        ) : (
+          <Banner message="Conexión perdida. Reintentando." detail={s.staleDetail}
+                  actionLabel="Reintentar ahora" onAction={s.retry} />
+        )
       ) : s.finished ? (
         <Banner tone="info" message="El episodio ha terminado."
                 detail="Se retira en unos segundos, o pasa al siguiente si arranca." />

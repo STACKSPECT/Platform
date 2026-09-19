@@ -1,9 +1,10 @@
 import { clockTime } from "@/lib/ui";
 
-/** Sin nada recibido durante este tiempo, con un episodio en curso, se da la conexión
- *  por perdida. Generoso a propósito: un aviso en falso durante la demo es peor que
- *  enterarse dos segundos más tarde. */
-export const HEARTBEAT_MS = 8000;
+/** Con un episodio en curso y el canal sano, sin recibir nada durante este tiempo se avisa de
+ *  que el episodio no envía datos. No es una conexión perdida: la conexión va bien, es quien
+ *  produce el que calla (un paso lento, o un proceso que se cayó sin cerrar el episodio). Por
+ *  eso es holgado: un paso de planificación o de asentado puede tardar decenas de segundos. */
+export const SILENCE_MS = 30_000;
 
 /** Cada cuánto se pregunta si hay un episodio en curso. Es lo que hace aparecer uno que acaba
  *  de arrancar (Realtime solo vigila el episodio que ya se está viendo) y lo que retira el
@@ -15,13 +16,26 @@ export const LIVE_POLL_MS = 5000;
  *  siguiente de una misma ejecución, para que Live no parpadee entre uno y otro. */
 export const HOLD_MS = 10_000;
 
-export function isStale(input: {
-  running: boolean; fetchFailed: boolean; lastSignalAt: number; now: number;
-}): boolean {
-  const { running, fetchFailed, lastSignalAt, now } = input;
-  return fetchFailed || (running && now - lastSignalAt > HEARTBEAT_MS);
+/** Por qué lo que se ve puede no estar al día:
+ *  - `lost`: falla la conexión (la consulta o el canal de Realtime). Se congela lo último recibido.
+ *  - `silent`: la conexión va bien pero el episodio en curso no manda nada.
+ *  - `null`: al día. */
+export type Staleness = "lost" | "silent" | null;
+
+export function staleness(input: {
+  running: boolean; fetchFailed: boolean; channelError: boolean;
+  lastSignalAt: number | null; now: number;
+}): Staleness {
+  const { running, fetchFailed, channelError, lastSignalAt, now } = input;
+  if (fetchFailed || channelError) return "lost";
+  if (running && lastSignalAt !== null && now - lastSignalAt > SILENCE_MS) return "silent";
+  return null;
 }
 
-export function staleDetail(lastSignalAt: number): string {
-  return `lo que se ve es el último dato recibido · ${clockTime(new Date(lastSignalAt).toISOString())}`;
+export function staleDetail(kind: Staleness, lastSignalAt: number | null): string | undefined {
+  if (lastSignalAt === null) return undefined;
+  const at = clockTime(new Date(lastSignalAt).toISOString());
+  return kind === "lost"
+    ? `lo que se ve es el último dato recibido · ${at}`
+    : `último dato recibido · ${at}`;
 }
