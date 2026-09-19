@@ -2,6 +2,8 @@
 
 import { usePathname } from "next/navigation";
 import { useRunsTotals } from "@/api/hooks";
+import { useTheme } from "@/hooks/useTheme";
+import { ThemeToggle } from "../../molecules";
 import { RunsTotals, TopBar } from "../../organisms";
 import { activeTab } from "./AppHeader.helper";
 
@@ -9,12 +11,14 @@ import { activeTab } from "./AppHeader.helper";
 export function AppHeader() {
   const active = activeTab(usePathname());
   const totals = useRunsTotals(active === "runs");
+  const { theme, toggle } = useTheme();
 
   return (
     <TopBar active={active}>
       {active === "runs" && (
         <RunsTotals runs={totals.runs.data} episodes={totals.episodes.data} />
       )}
+      <ThemeToggle theme={theme} onToggle={toggle} />
     </TopBar>
   );
 }

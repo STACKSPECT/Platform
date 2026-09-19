@@ -3,53 +3,117 @@
  * front (CSS, TS ni TSX) lleva un literal (#hex, rgb(), hsl()…); solo referencias
  * `var(--…)`. `npm run lint` lo comprueba (scripts/check-colors.mjs).
  *
- * Los valores base salen literales del tablero "Lenguaje visual" de docs/design/, no son
- * aproximaciones. Sala de control industrial: fondo oscuro, sin adornos. La interfaz se
- * compromete con un solo tema a propósito —es un panel de planta, no un documento— y por
- * eso pinta todos sus colores explícitamente en vez de heredar ninguno.
+ * Identidad: la del logo de STACKSPECT, línea blanca sobre negro. Por eso la interfaz es
+ * en blanco y negro, con dos temas —claro y oscuro— que comparten nombres y significado:
+ * cambiar de tema es sobrescribir la capa base, y los derivados se recalculan solos.
  *
- * Tres capas, de dentro afuera:
- *   1. Base       los colores del diseño.
- *   2. Derivados  el mismo color con transparencia, con nombre por su USO. Se calculan a
- *                 partir de la capa 1: cambiar `--ok` cambia también todo lo que lo mezcla.
+ * El color con significado se queda, en los dos temas, porque es información y no adorno:
+ *   verde / ámbar / rojo   los tres estados (nada más los usa)
+ *   rosa                   datos con oracle
+ *   violeta                datos sembrados
+ *   una identidad por causa de fallo
+ * Todo lo demás es escala de grises. La selección y la interacción van en «tinta»
+ * (--select: negro en claro, blanco en oscuro), no en un color.
+ *
+ * Contraste (WCAG AA): los textos --text a --text-4 y los tres estados llegan a 4.5:1
+ * sobre --bg y --surface en los dos temas. `npm run lint:contrast` lo comprueba.
+ * --text-5 es decorativo (líneas, iconos apagados): nunca para texto.
+ *
+ * Capas, de dentro afuera:
+ *   1. Base por tema   la paleta (aquí abajo, dos bloques).
+ *   2. Derivados       el mismo color con transparencia, con nombre por su USO.
  *   3. (los componentes solo consumen 1 y 2)
  */
 
-:root {
-  /* ── 1. Base ─────────────────────────────────────────────────────────── */
+/* ── 1. Base · tema claro (por defecto) ───────────────────────────────────── */
 
-  /* Neutros */
-  --bg:          #0F1214;
-  --surface:     #161A1E;
-  --topbar:      #141A1E;
-  --border:      #232B31;
-  --border-soft: #1F272C;
-  --border-hard: #3E4B56;
-  --row-alt:     #171C21;
-  --row-hover:   #1A2026;
+:root,
+:root[data-theme="light"] {
+  /* Neutros. El fondo no es blanco puro: el blanco queda para las tarjetas, que así se
+     despegan sin necesitar sombras fuertes. */
+  --bg:          #F5F5F3;
+  --surface:     #FFFFFF;
+  --topbar:      #FFFFFF;
+  --border:      #E4E4E0;
+  --border-soft: #EDEDEA;
+  --border-hard: #C9C9C4;   /* marcos decorativos (dibujo del palé, separadores fuertes) */
+  --control-border: #85858D; /* borde de un control: casilla, selector, botón. ≥ 3:1 */
+  --row-alt:     #FAFAF8;
+  --row-hover:   #F2F2EF;
 
-  --text:    #E6EAED;
-  --text-2:  #9FAAB2;
-  --text-3:  #8B979F;
-  --text-4:  #6E7A82;
-  --text-5:  #46525A;
+  --text:    #0A0A0B;
+  --text-2:  #3A3A40;
+  --text-3:  #55555C;
+  --text-4:  #6C6C74;
+  --text-5:  #A5A5AD;
 
-  /* Azul acero: SOLO selección e interacción. Nunca significa estado. */
-  --select:     #5B9DD9;
-  --link:       #6FA8D8;
-  --link-hover: #9CC6E8;
+  /* Tinta: selección e interacción. Nunca significa estado. */
+  --select:     #0A0A0B;
+  --on-select:  #FFFFFF;   /* lo que se pinta encima de --select (la marca de una casilla) */
+  --link:       #0A0A0B;
+  --link-hover: #55555C;
 
   /* Semántica de color: tres significados y ninguno más. */
-  --ok:   #2FBF71;
-  --warn: #E8A93A;
-  --bad:  #F2544B;
+  --ok:   #15803D;
+  --warn: #B45309;
+  --bad:  #C62828;
 
   /* Números que no son de verdad. Molestan a la vista a propósito. */
-  --oracle:    #E5399B;
-  --synthetic: #B77BF3;
+  --oracle:    #C81E78;
+  --synthetic: #6D28D9;
 
-  /* Una identidad de color por causa de fallo, constante en toda la aplicación.
-     Se reconocen de un vistazo al pasar de una pantalla a otra. */
+  /* Una identidad de color por causa de fallo, constante en toda la aplicación. */
+  --f-no_detection:       #64748B;
+  --f-grasp_slip:         #A16207;
+  --f-ik_unreachable:     #2563EB;
+  --f-wrong_placement:    #6D5BD0;
+  --f-collision:          #B03A54;
+  --f-stack_collapse:     #EA580C;
+  --f-timeout:            #475569;
+  --f-overhang_violation: #0E9F9A;
+  --f-place_inaccurate:   #8B5E3C;
+
+  /* Marca, sombras y elevación. */
+  --logo:       var(--text);
+  --shadow-ink: #000000;
+  --elev-1: 0 1px 2px color-mix(in srgb, var(--shadow-ink) 5%, transparent),
+            0 1px 3px color-mix(in srgb, var(--shadow-ink) 4%, transparent);
+  --elev-2: 0 8px 24px color-mix(in srgb, var(--shadow-ink) 10%, transparent);
+
+  color-scheme: light;
+}
+
+/* ── 1. Base · tema oscuro (el del logo) ──────────────────────────────────── */
+
+:root[data-theme="dark"] {
+  --bg:          #0A0A0B;
+  --surface:     #131315;
+  --topbar:      #0A0A0B;
+  --border:      #26262A;
+  --border-soft: #1C1C20;
+  --border-hard: #3A3A40;
+  --control-border: #6B6B73;
+  --row-alt:     #101012;
+  --row-hover:   #1A1A1D;
+
+  --text:    #F4F4F5;
+  --text-2:  #C7C7CC;
+  --text-3:  #A1A1A8;
+  --text-4:  #85858D;
+  --text-5:  #55555C;
+
+  --select:     #F4F4F5;
+  --on-select:  #0A0A0B;
+  --link:       #F4F4F5;
+  --link-hover: #A1A1A8;
+
+  --ok:   #3DD68C;
+  --warn: #F0B24B;
+  --bad:  #FF6B62;
+
+  --oracle:    #FF5CB0;
+  --synthetic: #B692FF;
+
   --f-no_detection:       #7A8B99;
   --f-grasp_slip:         #C9A227;
   --f-ik_unreachable:     #5B9DD9;
@@ -60,11 +124,20 @@
   --f-overhang_violation: #00A9A5;
   --f-place_inaccurate:   #A0785A;
 
-  /* ── 2. Derivados, por uso ───────────────────────────────────────────── */
+  --logo:       var(--text);
+  --shadow-ink: #000000;
+  --elev-1: 0 1px 2px color-mix(in srgb, var(--shadow-ink) 40%, transparent);
+  --elev-2: 0 12px 32px color-mix(in srgb, var(--shadow-ink) 55%, transparent);
 
+  color-scheme: dark;
+}
+
+/* ── 2. Derivados, por uso (iguales en los dos temas) ─────────────────────── */
+
+:root {
   /* Relleno de lo seleccionado. */
-  --select-row:  color-mix(in srgb, var(--select) 10%, transparent);  /* fila de tabla */
-  --select-fill: color-mix(in srgb, var(--select) 16%, transparent);  /* último paquete, muestra de leyenda */
+  --select-row:  color-mix(in srgb, var(--select) 7%, transparent);   /* fila de tabla */
+  --select-fill: color-mix(in srgb, var(--select) 14%, transparent);  /* último paquete, muestra de leyenda */
 
   /* Rellenos del dibujo del palé. */
   --neutral-fill: color-mix(in srgb, var(--text-2) 10%, transparent);  /* paquete colocado */
@@ -79,12 +152,15 @@
   --synthetic-stripe:       color-mix(in srgb, var(--synthetic) 16%, transparent);
   --synthetic-stripe-soft:  color-mix(in srgb, var(--synthetic) 10%, transparent);
 
+  /* Tinte suave de cada estado: fondo de una etiqueta o de un mensaje. */
+  --ok-fill:   color-mix(in srgb, var(--ok) 10%, transparent);
+  --warn-fill: color-mix(in srgb, var(--warn) 10%, transparent);
+  --bad-fill-soft: color-mix(in srgb, var(--bad) 8%, transparent);
+
   /* Halo del punto de estado cuando late (Dot). */
   --ok-halo:    color-mix(in srgb, var(--ok) 25%, transparent);
   --warn-halo:  color-mix(in srgb, var(--warn) 25%, transparent);
   --bad-halo:   color-mix(in srgb, var(--bad) 25%, transparent);
-  --light-halo: color-mix(in srgb, var(--text) 25%, transparent);
+  --light-halo: color-mix(in srgb, var(--text) 18%, transparent);
   --muted-halo: color-mix(in srgb, var(--text-4) 25%, transparent);
-
-  color-scheme: dark;
 }

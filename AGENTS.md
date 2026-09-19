@@ -39,7 +39,7 @@ frontend/                Next.js 16. Lee Supabase con la clave anon, bajo RLS.
   app/                     rutas: / (Live), /runs, /runs/[id], /runs/[id]/[seed]
   components/              Pallet, Episode, Runs, primitives, TopBar
   lib/ui.ts                TODA conversión de unidades, en un solo sitio
-  styles/colors.css        TODOS los colores, en un solo sitio
+  styles/colors.css        TODOS los colores (tema claro y oscuro), en un solo sitio
   lib/supabase.ts          tipos, consultas y comparability()
 
 docs/
@@ -201,7 +201,11 @@ evolución en vez de borrón y cuenta nueva.
 - Nombres de código en inglés; comentarios y documentos en castellano.
 - Commits pequeños, con números cuando toquen comportamiento.
 - El diseño de referencia es `docs/design/observality-platform-design.html`: un bundle
-  autoextraíble con 11 tableros. Se abre en el navegador.
+  autoextraíble con 11 tableros. Se abre en el navegador. Manda en la **estructura y el
+  contenido** de cada pantalla; **no** en el aspecto: la identidad visual es la del logo de
+  STACKSPECT (blanco y negro, esquinas suaves, Plus Jakarta Sans y Geist Mono), con tema
+  claro y oscuro. El color con significado (estados, oracle, sembrado, causas de fallo) se
+  conserva en los dos temas. `npm run lint:contrast` garantiza el contraste AA.
 
 ---
 
