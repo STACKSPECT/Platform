@@ -16,3 +16,4 @@ export { RunsTotals } from "./RunsTotals";
 export { TopBar } from "./TopBar";
 export { EpisodeDashboard, buildEpisodeView } from "./EpisodeDashboard";
 export type { EpisodeView } from "./EpisodeDashboard";
+export { RunHeader, buildRunHeader } from "./RunHeader";
