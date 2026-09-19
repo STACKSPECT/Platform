@@ -1,0 +1,24 @@
+.value { display: inline-flex; align-items: baseline; gap: 8px; min-width: 0; }
+
+.num {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  line-height: 1;
+}
+.unit {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  color: var(--text-3);
+}
+
+.md .num { font-size: 24px; }  .md .unit { font-size: 13px; }
+.lg .num { font-size: 32px; }  .lg .unit { font-size: 14px; }
+.xl .num { font-size: 40px; }  .xl .unit { font-size: 15px; }
+
+.default { color: var(--text); }
+.muted   { color: var(--text-3); }
+.faint   { color: var(--text-4); }
+.ok      { color: var(--ok); }
+.warn    { color: var(--warn); }
+.bad     { color: var(--bad); }
+.select  { color: var(--select); }

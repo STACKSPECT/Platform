@@ -1,0 +1,13 @@
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.ok    { background: var(--ok);     --halo: var(--ok); }
+.warn  { background: var(--warn);   --halo: var(--warn); }
+.bad   { background: var(--bad);    --halo: var(--bad); }
+.muted { background: var(--text-4); --halo: var(--text-4); }
+
+.pulse { box-shadow: 0 0 0 3px color-mix(in srgb, var(--halo) 25%, transparent); }

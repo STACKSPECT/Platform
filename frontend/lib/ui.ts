@@ -78,6 +78,13 @@ export function kg(v: number | null | undefined, digits = 1): string {
   return `${v.toFixed(digits)}${NBSP}kg`;
 }
 
+/** Parte una cantidad ya formateada ("31 mm") en número y unidad, para pintarlas con
+ *  tamaños distintos. No convierte nada: solo trocea lo que devuelven mm/pct/seconds. */
+export function splitQuantity(formatted: string): { value: string; unit: string } {
+  const [value, ...rest] = formatted.split(/\s/);
+  return { value, unit: rest.join(" ") };
+}
+
 /* ── estados ────────────────────────────────────────────────────────────── */
 
 export type State = "ok" | "warn" | "bad";

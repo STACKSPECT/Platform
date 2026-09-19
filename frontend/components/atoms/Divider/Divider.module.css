@@ -1,0 +1,3 @@
+.divider { background: var(--border-hard); flex-shrink: 0; display: block; }
+.horizontal { height: 1px; width: 100%; }
+.vertical   { width: 1px; height: 26px; }
