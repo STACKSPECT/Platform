@@ -140,6 +140,18 @@ export default function LivePage() {
   const last = states.length ? states[states.length - 1] : null;
   const margin = last?.stability_margin_m ?? episode.final_stability_m;
 
+  /* Mientras el episodio está en curso, `episodes.n_placed` vale 0: lo deja así
+     `begin()` y solo lo actualiza `end()`. Contarlo de las colocaciones que ya han
+     llegado evita que estos dos KPIs se queden clavados en cero justo mientras el palé
+     se monta, que es cuando el jurado está mirando. */
+  const colocados = running
+    ? placements.filter((p) => p.placed).length
+    : episode.n_placed;
+  const transcurrido = events.length ? events[events.length - 1].ts : 0;
+  const ciclo = running
+    ? (colocados ? transcurrido / colocados : null)
+    : episode.cycle_time_s;
+
   return (
     <main className="live">
       <IdentityBar episode={episode} running={running} stale={stale} />
@@ -170,11 +182,11 @@ export default function LivePage() {
 
         <div className="live__side">
           <div className="live__kpis">
-            <Kpi label="Colocados" value={`${episode.n_placed} ud`}
+            <Kpi label="Colocados" value={`${colocados} ud`}
                  note={`de ${episode.n_objects}`}
-                 state={episode.n_placed === episode.n_objects ? "ok"
+                 state={colocados === episode.n_objects ? "ok"
                    : failed ? "bad" : "warn"} />
-            <Kpi label="Tiempo de ciclo" value={seconds(episode.cycle_time_s)}
+            <Kpi label="Tiempo de ciclo" value={seconds(ciclo)}
                  note="s / paquete" />
             <Kpi label="Margen de estabilidad" value={signedMm(margin)}
                  note="al borde del soporte" state={stabilityState(margin)} />
