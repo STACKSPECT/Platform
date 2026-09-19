@@ -74,6 +74,13 @@ python backend/backfill.py --runs-dir <repo de la simulación>/simulation/runs
 
 # 5. Front
 cd frontend && npm install && npm run dev
+
+# 6. Tests. Sin DATABASE_URL corren los que no tocan la red; con él se añaden los
+#    que aplican el esquema de verdad y verifican el contrato con el front.
+pip install -e 'backend[dev]'
+docker run --rm -d --name pg -e POSTGRES_PASSWORD=postgres -p 5433:5432 postgres:16
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5433/postgres
+ruff check backend && pytest backend -q
 ```
 
 `frontend/.env.local` lleva **solo** `NEXT_PUBLIC_SUPABASE_URL` y
@@ -122,9 +129,12 @@ episodio sigue: la demo no puede depender del wifi de la sala.
 
 Cerrado. Añadir una nueva obliga a tocar **tres sitios**: `FAILURES` en
 `backend/theker_telemetry/schema.py`, el CHECK de `episodes.failure` en
-`backend/sql/002_design.sql`, y `FAILURE_TEXT` en `frontend/lib/ui.ts`. Saltarse el
+`backend/sql/001_schema.sql`, y `FAILURE_TEXT` en `frontend/lib/ui.ts`. Saltarse el
 segundo hace que el episodio se escriba en disco y la subida se caiga entera sin que
 nadie se entere hasta ver la interfaz vacía.
+
+Ya no hace falta acordarse: `backend/tests/test_vocabulario.py` compara los tres sitios
+y falla si uno se queda atrás.
 
 | enum | en pantalla |
 |---|---|
@@ -202,7 +212,14 @@ evolución en vez de borrón y cuenta nueva.
 
 ## 9. Estado
 
-- **Backend: completo.** Esquema, SDK, backfill y sembrado, todos probados.
+- **Backend: completo y con red.** Esquema, SDK, backfill y sembrado, con 110 tests y
+  CI. `pytest backend -q` no toca la red; exportando `DATABASE_URL` a un Postgres
+  desechable se añaden los que levantan el esquema de verdad y comprueban el contrato
+  con el front (`backend/tests/test_contrato.py`). El contrato está escrito en `API.md`.
+- **Episodio en vivo:** `RunLog` tiene `begin()` / `event()` / `pallet_state()` /
+  `end()` además de `episode()`. **La simulación tiene que llamarlas** o Live enseñará
+  el palé ya montado: `episode()` sube todo de golpe y entonces no hay fila `running`
+  ni `UPDATE` a los que Realtime pueda reaccionar.
 - **Front:** tokens, librerías, componentes y la pantalla **Live** con Realtime y sus
   tres estados (sin ejecución, fallo, conexión perdida). Compila.
 - **Pendiente:** las rutas `/runs`, `/runs/[id]` y `/runs/[id]/[seed]`. Son pegamento:

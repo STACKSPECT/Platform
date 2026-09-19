@@ -8,13 +8,13 @@
 -- algo nuevo no obliga a migrar el esquema a las tres de la mañana.
 --
 -- El `jsonl` de runs/ sigue siendo la fuente de verdad. Esto es una réplica
--- consultable: si se pierde, se reconstruye con scripts/backfill.py.
+-- consultable: si se pierde, se reconstruye con backend/backfill.py.
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Tablas. Los vocabularios cerrados se expresan con CHECK y no con ENUM de
 -- Postgres a propósito: ampliar un CHECK es un ALTER de una línea, ampliar un
 -- ENUM es una migración. Si añades un valor aquí, añádelo TAMBIÉN en
--- src/metrics.py y en AGENTS.md §5.
+-- backend/theker_telemetry/schema.py y en AGENTS.md §5.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 create table if not exists runs (
@@ -59,12 +59,14 @@ create table if not exists episodes (
 -- que ampliar el vocabulario sea volver a pegar este fichero y no una migración.
 --
 -- Ojo a la distinción, que no es cosmética: este CHECK dice qué se puede ALMACENAR
--- e incluye el histórico; `FAILURES` en src/metrics.py dice qué se puede PRODUCIR e
--- incluye solo lo vivo. Por eso hay valores aquí que el código de hoy no emite: los
--- midió una versión anterior y tirarlos sería falsear la curva de mejora.
+-- e incluye el histórico; `FAILURES` en theker_telemetry/schema.py dice qué se puede
+-- PRODUCIR e incluye solo lo vivo. Por eso hay valores aquí que el código de hoy no
+-- emite: los midió una versión anterior y tirarlos sería falsear la curva de mejora.
+--
+-- backend/tests/test_vocabulario.py comprueba que la asimetría es esa y no un olvido.
 alter table episodes drop constraint if exists episodes_failure_check;
 alter table episodes add  constraint episodes_failure_check check (failure in (
-  -- vigentes (= src/metrics.py:FAILURES)
+  -- vigentes (= theker_telemetry/schema.py:FAILURES)
   'no_detection', 'ik_unreachable', 'collision', 'grasp_slip',
   'wrong_placement', 'timeout', 'stack_collapse', 'overhang_violation',
   -- histórico: ya no se emite. 60 episodios de la rama de ordenación, donde

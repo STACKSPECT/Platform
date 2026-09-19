@@ -128,13 +128,13 @@ Notas: `duration_s` y `score` pueden ser `null` (episodio en curso). `cycle_time
 `metrics` es libre (jsonb): en inducción lleva `n_misrouted`; en paletizado, `cog_offset_xy`,
 etc. `failure` es el identificador crudo: la interfaz nunca lo muestra, usa `failureText()`.
 
-> **Aviso: `v_episode_summary` no tiene `started_at`.** La vista de 002 no lo selecciona, así que
-> `?order=started_at.desc` sobre ella da `400 42703`. `fetchLatestEpisode` de `lib/supabase.ts`
-> hace exactamente eso en su segunda consulta (cuando no hay ningún episodio `running`). El cliente
-> nuevo `getLatestEpisode` lo evita pidiendo el id a `GET /episodes?select=id&order=started_at.desc&limit=1`
-> y luego la fila de la vista con `?id=eq.{id}`. No lo he podido confirmar contra una base real (no había
-> credenciales); si se prefiere arreglarlo de raíz, basta añadir `e.started_at` a la vista en
-> `002_design.sql`.
+> **Resuelto: `v_episode_summary` ya tiene `started_at` y `ended_at`.** Se confirmó contra un
+> Postgres real: `?order=started_at.desc` daba `400 42703`, y ese era el motivo de que Live se
+> quedara en "todavía no hay episodios" siempre que no hubiera un episodio `running`. La vista de
+> `002_design.sql` los proyecta desde el commit que arregló esto, así que `getLatestEpisode` puede
+> volver a una sola consulta sobre la vista y tirar el rodeo por `GET /episodes`. Lo vigila
+> `backend/tests/test_contrato.py`, que exige que toda columna usada en un `.order()`/`.eq()` exista
+> en la relación de su `.from()`.
 
 ### 2.3 `GET /v_failure_breakdown`: causas de fallo por run
 
@@ -222,6 +222,7 @@ Todo fallo remoto avisa una vez y el episodio sigue: el `episodes.jsonl` en disc
 | `POST /placements` | lote de filas con `episode_id` | `return=minimal` | `201` sin cuerpo |
 | `POST /pallet_states` | ídem | `return=minimal` | `201` sin cuerpo |
 | `POST /events` | ídem | `return=minimal` | `201` sin cuerpo |
+| `PATCH /episodes?id=eq.{uuid}` | `{ status, duration_s, n_placed, score, failure, metrics, ended_at }` | `return=minimal` | `204` sin cuerpo |
 | `PATCH /runs?id=eq.{uuid}` | `{ "ended_at": "now()" }` | `return=minimal` | `204` sin cuerpo |
 
 Restricciones que hacen fallar la escritura: `episodes.failure` fuera del CHECK (`23514`), `unique(run_id, seed)`,
@@ -242,13 +243,23 @@ Publicación `supabase_realtime`, canal `postgres_changes` sobre el esquema `pub
 
 Por eso, ante un `UPDATE` de `episodes` Live vuelve a consultar la vista en vez de usar el payload.
 
-Ojo: `RunLog.episode()` (§3) inserta el episodio **ya terminado** (`success`/`failure`) y con sus filas hijas
-de golpe; no hay ningún `UPDATE` de `episodes` ni un episodio `running` que salga del SDK actual. Live solo verá
-`INSERT`s en vivo si el productor escribe el episodio al empezar y sus `events`/`pallet_states` según avanzan.
+El SDK sabe producir las tres. `RunLog.episode()` sigue subiendo el episodio **ya terminado** con sus
+filas hijas de golpe, que es lo que quieren el backfill y el sembrado; para el modo en vivo hay un ciclo
+de vida aparte:
+
+| Llamada | Qué hace | Qué ve Live |
+|---|---|---|
+| `begin(seed, n_objects=…)` | `POST /episodes` con `status: "running"` | aparece el episodio en curso |
+| `event(...)` / `pallet_state(...)` / `placement(...)` | una fila suelta con su `episode_id` | los `INSERT` de §4, según ocurren |
+| `end(result)` | escribe el `jsonl` y hace el `PATCH` de arriba | el `UPDATE` que cierra el episodio |
+
+Quien produce episodios tiene que llamarlas, o Live seguirá enseñando el palé ya montado: sin una fila
+`running` y sin `UPDATE`, dos de las tres suscripciones no se disparan nunca.
 
 ## 5. Versiones del esquema
 
-`001_schema.sql` crea las tablas y unas vistas básicas; `002_design.sql` las **tira y rehace** y añade
+`001_schema.sql` crea las tablas, los índices, el RLS y la publicación de Realtime; las tres vistas las
+define solo `002_design.sql`, que además añade
 `runs.description`, `runs.synthetic`, `pallet_states.settle_drift_m`, `seed_min/max`, medianas, `dominant_failure`,
 `seed_series` y las columnas derivadas de `v_episode_summary`. Con solo 001 aplicado, las respuestas de arriba
 no tienen esos campos.
