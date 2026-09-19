@@ -25,9 +25,11 @@ export function TaskSection({ view }: { view: TaskSectionView }) {
         <Text variant="caption" tone="faint">{view.subtitle}</Text>
       </div>
       <div className={styles.grid}>
-        {view.levels.map((l) => (
+        {view.levels.map((l, i) => (
           <div key={l.key} id={anchorOf(view.task, l.key)} className={styles.anchor}>
-            <LevelCard view={l} />
+            {/* El primero abierto: la pantalla entra enseñando métricas, no una lista de
+                cabeceras, y los demás quedan a un clic. */}
+            <LevelCard view={l} defaultOpen={i === 0} />
           </div>
         ))}
       </div>
