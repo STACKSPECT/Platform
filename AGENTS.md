@@ -132,7 +132,9 @@ calculados de las vistas SQL. Dos sitios que suman lo mismo acaban discrepando.
 tiempo de ciclo y hace parecer rápido a un run que va mal.
 
 **Live solo enseña lo que está pasando ahora, y nunca se queda en blanco.** Muestra el
-episodio `running`; sin ninguno, lo dice con un mensaje («No hay ninguna ejecución en
+episodio `running`. Cuando acaba, se queda 10 s con su resultado («Terminado») para que se
+vea el desenlace y para que, si arranca otro de la misma ejecución, el cambio sea directo
+y no un parpadeo. Sin ninguno, lo dice con un mensaje («No hay ninguna ejecución en
 directo») y **no** lo rellena con lo último terminado, porque eso se leería como si
 estuviera ocurriendo. Si se pierde la conexión con un episodio en pantalla, congela lo
 último recibido y lo dice. Lo terminado se mira en Ejecuciones. Quedarse en blanco delante

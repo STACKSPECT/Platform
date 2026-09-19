@@ -6,8 +6,9 @@ import { Banner, EmptyState, Notice } from "../../molecules";
 import { EpisodeDashboard } from "../../organisms";
 import { useLiveScreen } from "./useLiveScreen";
 
-/** Live: el cuadro del episodio que está corriendo ahora. Sin ejecución en directo lo dice
- *  con un mensaje (nunca se queda en blanco ni enseña lo último terminado como si fuera
+/** Live: el cuadro del episodio que está corriendo ahora. Al terminar se queda unos segundos
+ *  con su resultado, y si arranca otro pasa a él sin vaciarse. Sin ejecución en directo lo
+ *  dice con un mensaje (nunca se queda en blanco ni enseña lo último terminado como si fuera
  *  actual) y, si se pierde la conexión con un episodio en pantalla, congela lo último
  *  recibido y lo dice. */
 export function LiveScreen() {
@@ -41,10 +42,13 @@ export function LiveScreen() {
   return (
     <EpisodeDashboard
       view={s.view}
-      banner={s.stale && (
+      banner={s.stale ? (
         <Banner message="Conexión perdida. Reintentando." detail={s.staleDetail}
                 actionLabel="Reintentar ahora" onAction={s.retry} />
-      )}
+      ) : s.finished ? (
+        <Banner tone="info" message="El episodio ha terminado."
+                detail="Se retira en unos segundos, o pasa al siguiente si arranca." />
+      ) : null}
     />
   );
 }

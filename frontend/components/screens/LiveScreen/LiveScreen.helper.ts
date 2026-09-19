@@ -10,6 +10,11 @@ export const HEARTBEAT_MS = 8000;
  *  que acaba de terminar si el aviso de Realtime no llega. */
 export const LIVE_POLL_MS = 5000;
 
+/** Cuánto se sigue enseñando un episodio que acaba de terminar, con su resultado, antes de
+ *  dar el directo por acabado. Deja ver el desenlace y cubre el hueco hasta el episodio
+ *  siguiente de una misma ejecución, para que Live no parpadee entre uno y otro. */
+export const HOLD_MS = 10_000;
+
 export function isStale(input: {
   running: boolean; fetchFailed: boolean; lastSignalAt: number; now: number;
 }): boolean {
