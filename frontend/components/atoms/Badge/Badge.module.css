@@ -1,6 +1,7 @@
 .badge {
   display: inline-flex;
   align-items: center;
+  gap: 7px;
   padding: 3px 9px;
   border: 1px solid currentColor;
   font-family: var(--font-plex-condensed), sans-serif;
@@ -11,6 +12,8 @@
   white-space: nowrap;
 }
 .neutral   { color: var(--text-3); }
+.ok        { color: var(--ok); }
+.bad       { color: var(--bad); }
 .oracle    { color: var(--oracle); }
 .synthetic { color: var(--synthetic); }
 

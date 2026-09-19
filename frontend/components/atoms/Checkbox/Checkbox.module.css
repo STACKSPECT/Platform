@@ -1,0 +1,33 @@
+.hit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+
+.box {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  border: 1px solid var(--border-hard);
+  background: transparent;
+  cursor: inherit;
+  display: grid;
+  place-content: center;
+}
+.box:hover:not(:disabled) { border-color: var(--select); }
+
+/* El azul acero marca selección: es justo su trabajo aquí. */
+.box:checked { background: var(--select); border-color: var(--select); }
+.box:checked::after {
+  content: "";
+  width: 4px;
+  height: 8px;
+  border: solid var(--bg);
+  border-width: 0 2px 2px 0;
+  transform: translateY(-1px) rotate(45deg);
+}
+.box:disabled { opacity: 0.4; cursor: not-allowed; }
