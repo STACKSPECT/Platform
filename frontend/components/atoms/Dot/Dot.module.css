@@ -5,10 +5,10 @@
   display: inline-block;
   flex-shrink: 0;
 }
-.ok    { background: var(--ok);     --halo: var(--ok); }
-.warn  { background: var(--warn);   --halo: var(--warn); }
-.bad   { background: var(--bad);    --halo: var(--bad); }
-.light { background: var(--text); --halo: var(--text); }
-.muted { background: var(--text-4); --halo: var(--text-4); }
+.ok    { background: var(--ok);     --halo: var(--ok-halo); }
+.warn  { background: var(--warn);   --halo: var(--warn-halo); }
+.bad   { background: var(--bad);    --halo: var(--bad-halo); }
+.light { background: var(--text); --halo: var(--light-halo); }
+.muted { background: var(--text-4); --halo: var(--muted-halo); }
 
-.pulse { box-shadow: 0 0 0 3px color-mix(in srgb, var(--halo) 25%, transparent); }
+.pulse { box-shadow: 0 0 0 3px var(--halo); }

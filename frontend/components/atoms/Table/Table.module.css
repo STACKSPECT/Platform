@@ -34,8 +34,8 @@
 
 /* La barra izquierda va en la primera celda: `box-shadow` en <tr> no pinta con
    border-collapse. */
-.selected { background: rgba(91, 157, 217, 0.10); }
+.selected { background: var(--select-row); }
 .selected > .td:first-child { box-shadow: inset 3px 0 0 var(--select); }
 .oracle > .td:first-child { box-shadow: inset 3px 0 0 var(--oracle); }
-.synthetic { background: repeating-linear-gradient(135deg, rgba(183, 123, 243, 0.10) 0 7px, transparent 7px 14px); }
+.synthetic { background: repeating-linear-gradient(135deg, var(--synthetic-stripe-soft) 0 7px, transparent 7px 14px); }
 .synthetic > .td:first-child { box-shadow: inset 3px 0 0 var(--synthetic); }

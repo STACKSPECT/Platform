@@ -1,56 +1,7 @@
 /*
- * Sistema visual de la plataforma. Los valores salen literales del tablero
- * "Lenguaje visual" de docs/design/, no son aproximaciones.
- *
- * Sala de control industrial: fondo oscuro, sin adornos, sin degradados. La interfaz
- * se compromete con un solo tema a propósito —es un panel de planta, no un documento—
- * y por eso pinta todos sus colores explícitamente en vez de heredar ninguno.
+ * Estilos globales de la plataforma. Los colores NO se definen aquí: viven todos en
+ * styles/colors.css, y este archivo (como cualquier otro) solo los consume con `var(--…)`.
  */
-
-:root {
-  /* Neutros */
-  --bg:          #0F1214;
-  --surface:     #161A1E;
-  --topbar:      #141A1E;
-  --border:      #232B31;
-  --border-soft: #1F272C;
-  --border-hard: #3E4B56;
-  --row-alt:     #171C21;
-  --row-hover:   #1A2026;
-
-  --text:    #E6EAED;
-  --text-2:  #9FAAB2;
-  --text-3:  #8B979F;
-  --text-4:  #6E7A82;
-  --text-5:  #46525A;
-
-  /* Azul acero: SOLO selección e interacción. Nunca significa estado. */
-  --select: #5B9DD9;
-  --link:   #6FA8D8;
-
-  /* Semántica de color: tres significados y ninguno más. */
-  --ok:   #2FBF71;
-  --warn: #E8A93A;
-  --bad:  #F2544B;
-
-  /* Números que no son de verdad. Molestan a la vista a propósito. */
-  --oracle:    #E5399B;
-  --synthetic: #B77BF3;
-
-  /* Una identidad de color por causa de fallo, constante en toda la aplicación.
-     Se reconocen de un vistazo al pasar de una pantalla a otra. */
-  --f-no_detection:       #7A8B99;
-  --f-grasp_slip:         #C9A227;
-  --f-ik_unreachable:     #5B9DD9;
-  --f-wrong_placement:    #8C7AE6;
-  --f-collision:          #B5485E;
-  --f-stack_collapse:     #FF7A45;
-  --f-timeout:            #4A5A66;
-  --f-overhang_violation: #00A9A5;
-  --f-place_inaccurate:   #A0785A;
-
-  color-scheme: dark;
-}
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -67,7 +18,7 @@ body {
 }
 
 a { color: var(--link); text-decoration: none; }
-a:hover { color: #9CC6E8; }
+a:hover { color: var(--link-hover); }
 
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
 

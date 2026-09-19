@@ -17,5 +17,5 @@
 .oracle    { color: var(--oracle); }
 .synthetic { color: var(--synthetic); }
 
-.oracle    { background: repeating-linear-gradient(135deg, rgba(229, 57, 155, 0.16) 0 7px, transparent 7px 14px); }
-.synthetic { background: repeating-linear-gradient(135deg, rgba(183, 123, 243, 0.16) 0 7px, transparent 7px 14px); }
+.oracle    { background: repeating-linear-gradient(135deg, var(--oracle-stripe) 0 7px, transparent 7px 14px); }
+.synthetic { background: repeating-linear-gradient(135deg, var(--synthetic-stripe) 0 7px, transparent 7px 14px); }
