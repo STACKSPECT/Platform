@@ -96,6 +96,11 @@ export function changeTone(
   return (lowerIsBetter ? diff < 0 : diff > 0) ? "ok" : "bad";
 }
 
+/** Primera letra en mayúscula: «paletizado» → «Paletizado». */
+export function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 /** «19 sep». */
 export function shortDate(iso: string | null | undefined): string {
   if (!iso) return "—";

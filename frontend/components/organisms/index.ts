@@ -17,3 +17,7 @@ export { TopBar } from "./TopBar";
 export { EpisodeDashboard, buildEpisodeView } from "./EpisodeDashboard";
 export type { EpisodeView } from "./EpisodeDashboard";
 export { RunHeader, buildRunHeader } from "./RunHeader";
+export { LevelCard, buildLevelCard, kindOf, KIND_TEXT } from "./LevelCard";
+export type { DataKind, LevelCardView } from "./LevelCard";
+export { TaskSection } from "./TaskSection";
+export type { TaskSectionView } from "./TaskSection";

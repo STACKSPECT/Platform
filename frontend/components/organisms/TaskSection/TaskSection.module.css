@@ -1,0 +1,13 @@
+.section { display: flex; flex-direction: column; gap: 14px; }
+
+.header { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.title { font-size: 20px; font-weight: 700; }
+
+/* Dos por fila en una pantalla grande, una en la estrecha: cada tarjeta necesita sitio para
+   sus tres columnas (valor, cambio, línea). */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 560px), 1fr));
+  gap: var(--page-gap);
+  align-items: start;
+}
