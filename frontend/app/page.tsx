@@ -56,6 +56,25 @@ export default function LivePage() {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void load(); }, [load]);
 
+  /* Vigía de episodios nuevos. Las suscripciones de abajo van filtradas al episodio
+     que se está enseñando, así que sin esto arrancar la simulación no despertaría a
+     nadie: el episodio nuevo nace y la pantalla se queda en el anterior hasta que
+     alguien recargue a mano. Se mira `status` porque un backfill inserta cientos de
+     episodios ya terminados y no hay por qué recargar con cada uno. */
+  useEffect(() => {
+    if (!configured) return;
+    const canal = supabase
+      .channel("live-nuevos")
+      .on("postgres_changes",
+          { event: "INSERT", schema: "public", table: "episodes" },
+          (p) => {
+            if ((p.new as { status?: string }).status === "running") void load();
+          })
+      .subscribe();
+
+    return () => { void supabase.removeChannel(canal); };
+  }, [load]);
+
   /* Realtime: esta vista se alimenta de estas suscripciones y de nada más. */
   useEffect(() => {
     if (!configured || !episode) return;

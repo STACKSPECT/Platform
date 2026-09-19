@@ -240,8 +240,27 @@ Publicación `supabase_realtime`, canal `postgres_changes` sobre el esquema `pub
 | `events` | `INSERT` | `episode_id=eq.{id}` | fila de `events` (§2.6) |
 | `pallet_states` | `INSERT` | `episode_id=eq.{id}` | fila de `pallet_states` (§2.5) |
 | `episodes` | `UPDATE` | `id=eq.{id}` | fila de `episodes` **en crudo**, no de la vista: sin `git_sha`, `oracle`, ni columnas derivadas |
+| `episodes` | `INSERT` | *(sin filtro)* | fila en crudo; Live solo reacciona si `status` es `running` |
 
 Por eso, ante un `UPDATE` de `episodes` Live vuelve a consultar la vista en vez de usar el payload.
+
+La suscripción sin filtro es aparte y hace falta: las otras tres van filtradas al episodio que se está
+enseñando, así que un episodio **nuevo** no despertaría a nadie y la pantalla se quedaría en el anterior
+hasta recargar a mano. Se filtra por `status = running` en el cliente porque un backfill inserta cientos
+de episodios ya terminados y no hay por qué recargar con cada uno.
+
+### Qué enseña Live, exactamente
+
+Es un **episodio**, no una ejecución, y se elige en dos pasos:
+
+1. ¿Hay alguno con `status = running`? → ese, en vivo.
+2. Si no → el de `started_at` más reciente: el último guardado.
+
+Ojo con el paso 2: `episodes.started_at` es `default now()`, así que para lo subido por `backfill.py` o por
+el sembrado es la hora de **inserción**, no la de ejecución (los episodios de un mismo run backfilleado
+comparten sello al segundo). Para lo que se produce con `begin()` sí es la hora real de arranque. Y tras
+sembrar, lo sintético queda como "lo último" hasta que se mida algo nuevo: sale con su trama, pero
+conviene saberlo antes de una demo.
 
 El SDK sabe producir las tres. `RunLog.episode()` sigue subiendo el episodio **ya terminado** con sus
 filas hijas de golpe, que es lo que quieren el backfill y el sembrado; para el modo en vivo hay un ciclo
