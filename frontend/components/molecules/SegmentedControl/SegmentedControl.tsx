@@ -11,13 +11,15 @@ type Props = {
   options: Option[];
   value: string;
   onChange: (value: string) => void;
+  /** Más bajo, para cabeceras de panel. */
+  compact?: boolean;
 };
 
 /** Elegir una opción entre pocas, siempre a la vista. Radios nativos: teclado y lector de
  *  pantalla gratis. `count` dice cuántas ejecuciones hay detrás de cada una. */
-export function SegmentedControl({ name, label, options, value, onChange }: Props) {
+export function SegmentedControl({ name, label, options, value, onChange, compact }: Props) {
   return (
-    <div className={styles.group} role="radiogroup" aria-label={label}>
+    <div className={cx(styles.group, compact && styles.compact)} role="radiogroup" aria-label={label}>
       {options.map((o) => (
         <label key={o.value} className={cx(styles.option, o.count === 0 && styles.empty)}>
           <input type="radio" name={name} value={o.value} className={styles.input}

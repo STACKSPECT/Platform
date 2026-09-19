@@ -29,3 +29,6 @@
 
 .count { color: var(--text-4); }
 .empty .face { opacity: 0.55; }
+
+.compact { padding: 2px; }
+.compact .face { padding: 4px 12px; font-size: 12.5px; }
