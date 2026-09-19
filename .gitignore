@@ -39,3 +39,6 @@ Thumbs.db
 # Logs y volcados
 *.log
 core
+
+# CodeGraph
+.codegraph/

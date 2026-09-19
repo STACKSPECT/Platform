@@ -28,14 +28,14 @@ import math
 import random
 import sys
 import urllib.request
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 BACKEND = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BACKEND))
 REPO = BACKEND.parent
 
-from theker_telemetry import EpisodeResult, Supabase          # noqa: E402
+from theker_telemetry import EpisodeResult, Supabase  # noqa: E402
 
 # Palé europeo. El diseño insiste en que se dibuje a escala real, así que las medidas
 # tienen que ser las de verdad y no un cuadrado bonito.
@@ -350,7 +350,7 @@ def main() -> int:
         return 0
 
     rng = random.Random()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     for i, (sha, level, label, desc, precision, bias, lookahead, balance) in enumerate(CAMPAIGN[:args.runs]):
         # Las más viejas primero: la campaña cuenta una mejora a lo largo del tiempo.
         started = now - timedelta(hours=(len(CAMPAIGN) - i) * 9)

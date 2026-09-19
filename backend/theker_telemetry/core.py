@@ -18,9 +18,10 @@ import json
 import os
 import urllib.error
 import urllib.request
+from collections.abc import Iterable, Sequence
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Iterable, Sequence
+from typing import Any
 
 from .schema import EpisodeResult, RunWriter, git_sha
 
