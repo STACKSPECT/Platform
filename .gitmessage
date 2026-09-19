@@ -1,0 +1,12 @@
+# <tipo>(<ámbito>): <asunto en imperativo, sin punto, máx 50 caracteres>
+#
+# Tipos:  feat fix docs style refactor test chore perf ci revert
+# Ámbitos de este repo:  sim perception planning control runner metrics configs scripts
+#
+# Cuerpo: explica el POR QUÉ, no el qué (el diff ya dice el qué).
+#
+# Si el commit toca comportamiento, lleva métricas (AGENTS.md §9). Por ejemplo:
+#   nivel 2: 62 % -> 81 % de bultos colocados (n=50)
+# Sin número no hay forma de saber si fue una mejora o una corazonada.
+#
+# Pie: Closes #123 · BREAKING CHANGE: ...

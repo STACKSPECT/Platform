@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "theker-telemetry"
+version = "0.1.0"
+description = "SDK de telemetría de la plataforma de observabilidad de THEKER"
+requires-python = ">=3.11"
+# Sin dependencias a propósito: PostgREST se habla con urllib de la stdlib. Cada
+# paquete nuevo es algo que puede romperse la noche antes de la demo.
+dependencies = []
+
+[tool.setuptools]
+packages = ["theker_telemetry"]
