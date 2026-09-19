@@ -1,0 +1,10 @@
+.label {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.faint { fill: var(--text-4); }
+.muted { fill: var(--text-3); }
+.ok    { fill: var(--ok); }
+.warn  { fill: var(--warn); }
+.bad   { fill: var(--bad); }

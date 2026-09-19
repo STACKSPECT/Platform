@@ -9,3 +9,8 @@ export { Card } from "./Card";
 export { Divider } from "./Divider";
 export { Icon } from "./Icon";
 export type { IconName } from "./Icon";
+export { SceneRect } from "./SceneRect";
+export type { SceneRectVariant } from "./SceneRect";
+export { GuideLine } from "./GuideLine";
+export { CogMarker } from "./CogMarker";
+export { SceneLabel } from "./SceneLabel";
