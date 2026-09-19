@@ -139,6 +139,7 @@ export function clockTime(iso: string | null | undefined): string {
 export const TASK_TEXT: Record<string, string> = {
   induction: "inducción",
   palletizing: "paletizado",
+  "paletizado-guionizado": "paletizado guionizado",
 };
 
 export const EVENT_TEXT: Record<string, string> = {

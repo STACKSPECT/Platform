@@ -21,7 +21,7 @@ create table if not exists runs (
   id            uuid primary key default gen_random_uuid(),
   started_at    timestamptz not null default now(),
   ended_at      timestamptz,
-  task          text not null check (task in ('induction', 'palletizing')),
+  task          text not null,            -- CHECK aparte, más abajo: ver nota
   level         int  not null,
   git_sha       text not null default '',
   oracle        bool not null default false,
@@ -40,7 +40,7 @@ create table if not exists episodes (
   id            uuid primary key default gen_random_uuid(),
   run_id        uuid not null references runs(id) on delete cascade,
   seed          int  not null,
-  task          text not null check (task in ('induction', 'palletizing')),
+  task          text not null,            -- CHECK aparte, más abajo: ver nota
   level         int  not null,
   status        text not null default 'running'
                   check (status in ('running', 'success', 'failure')),
@@ -78,6 +78,25 @@ comment on column episodes.metrics is
   'Métricas específicas de la tarea: n_misrouted en inducción; cog_offset_xy, fill_ratio, settle_drift... en paletizado. Ver el diccionario del briefing §5.';
 comment on column episodes.failure is
   'Vocabulario cerrado. La interfaz NUNCA muestra este identificador crudo: lo traduce.';
+
+-- El CHECK de `task` va fuera del CREATE TABLE por lo mismo que el de `failure`:
+-- `create table if not exists` no toca una tabla que ya existe, así que un vocabulario
+-- declarado ahí dentro solo se podría ampliar migrando a mano. Aquí se recrea en cada
+-- pasada, y ampliarlo es volver a pegar este fichero.
+--
+-- Si añades un valor, añádelo TAMBIÉN en theker_telemetry/schema.py:TASKS y en
+-- frontend/lib/ui.ts:TASK_TEXT. backend/tests/test_vocabulario.py compara los tres.
+do $$
+declare t text;
+begin
+  foreach t in array array['runs', 'episodes']
+  loop
+    execute format('alter table %I drop constraint if exists %I', t, t || '_task_check');
+    execute format(
+      'alter table %I add constraint %I check (task in (''induction'', ''palletizing'', ''paletizado-guionizado''))',
+      t, t || '_task_check');
+  end loop;
+end $$;
 
 -- Un paquete depositado (o intentado). Nace para paletizado, pero la tabla es
 -- genérica: en inducción un "placement" es un bulto metido en su caja.
