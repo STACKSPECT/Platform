@@ -3,7 +3,7 @@ export { useRuns } from "./useRuns";
 export { useRun } from "./useRun";
 export { useEpisodes } from "./useEpisodes";
 export { useEpisode } from "./useEpisode";
-export { useLatestEpisode } from "./useLatestEpisode";
+export { useRunningEpisode } from "./useRunningEpisode";
 export { usePlacements } from "./usePlacements";
 export { usePalletStates } from "./usePalletStates";
 export { useEvents } from "./useEvents";
