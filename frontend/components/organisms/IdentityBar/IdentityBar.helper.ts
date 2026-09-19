@@ -55,7 +55,8 @@ export function buildIdentity(input: {
     meta: [
       { label: "Tarea", value: TASK_TEXT[episode.task] ?? episode.task, mono: false },
       { label: "Nivel", value: episode.level, mono: true },
-      { label: "Semilla", value: episode.seed, mono: true },
+      // En el detalle de una ejecución la semilla ya la dice el selector de episodio.
+      ...(mode === "run" ? [] : [{ label: "Semilla", value: episode.seed, mono: true }]),
       { label: "Commit", value: episode.git_sha || "—", mono: true },
       { label: "Velocidad", value: `x${episode.motion_speed}`, mono: true },
     ],

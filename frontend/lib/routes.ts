@@ -7,3 +7,9 @@ export const routes = {
   /** Detalle de una ejecución, en el episodio de esa semilla. */
   episode: (runId: string, seed: number) => `/runs/${runId}/${seed}`,
 };
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Un id de ejecución es un UUID. Sin esta comprobación, `/runs/abc` llega a la base, que
+ *  responde con un error de sintaxis que no le dice nada a quien escribió mal la URL. */
+export const isUuid = (value: string): boolean => UUID.test(value);
