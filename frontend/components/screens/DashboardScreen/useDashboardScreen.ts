@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useRuns } from "@/api/hooks";
+import { useRuns } from "@/lib/api/hooks";
 import { configured } from "@/lib/supabase";
 import type { DataKind } from "../../organisms/LevelCard";
 import {

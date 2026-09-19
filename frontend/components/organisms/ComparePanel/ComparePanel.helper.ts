@@ -1,6 +1,6 @@
 import type { Blocker, Run } from "@/lib/supabase";
 import { commonSeeds, comparability } from "@/lib/supabase";
-import type { FailureBreakdownRow } from "@/api/types";
+import type { FailureBreakdownRow } from "@/lib/api/types";
 import {
   TASK_TEXT, changeTone, failureColor, failureText, pct, seconds, signedNumber,
 } from "@/lib/ui";

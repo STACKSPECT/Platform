@@ -5,8 +5,8 @@ PostgREST, más los canales Realtime. Este documento sale de `backend/sql/001_sc
 `backend/sql/002_design.sql` y `backend/theker_telemetry/core.py`; las respuestas de ejemplo son
 la forma de las columnas, no capturas de una base real.
 
-Los clientes del front que los consumen están en `frontend/api/clients/` y los hooks en
-`frontend/api/hooks/`. Los tipos siguen en `frontend/lib/supabase.ts`, que es lo que
+Los clientes del front que los consumen están en `frontend/lib/api/clients/` y los hooks en
+`frontend/lib/api/hooks/`. Los tipos siguen en `frontend/lib/supabase.ts`, que es lo que
 compara `backend/tests/test_contrato.py` contra las columnas de verdad.
 
 ## 1. Convenciones

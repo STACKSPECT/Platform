@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import {
   useEpisodeDetail, useEpisodeRealtime, useEpisodes, useRunningEpisode,
   useRunningEpisodeRealtime, useSnapshots,
-} from "@/api/hooks";
+} from "@/lib/api/hooks";
 import { configured } from "@/lib/supabase";
 import { useHold } from "@/hooks/useHold";
 import { useNow } from "@/hooks/useNow";

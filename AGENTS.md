@@ -38,8 +38,8 @@ backend/                 SQL + SDK. Supabase ES el backend; no hay servidor prop
 
 frontend/                Next.js 16. Lee Supabase con la clave anon, bajo RLS.
   app/                     rutas: / (Resumen), /live, /runs, /runs/[id], /runs/[id]/[seed]
-  api/clients/             una función por endpoint de PostgREST
-  api/hooks/               los mismos, envueltos en TanStack Query
+  lib/api/clients/         una función por endpoint de PostgREST
+  lib/api/hooks/           los mismos, envueltos en TanStack Query
   components/              atoms / organisms / screens
   lib/ui.ts                TODA conversión de unidades, en un solo sitio
   styles/colors.css        TODOS los colores (tema claro y oscuro), en un solo sitio

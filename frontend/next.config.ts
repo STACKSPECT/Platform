@@ -24,12 +24,23 @@ const PUBLICAS: Record<string, string> = {
 /** Nunca, bajo ningún nombre, puede acabar esto en el navegador. */
 const PROHIBIDAS = ["SERVICE_KEY", "SERVICE_ROLE", "SECRET", "PASSWORD"];
 
+function mapearPublicas(origen: string, valor: string | undefined): void {
+  const publica = PUBLICAS[origen];
+  if (!publica || !valor || process.env[publica]) return;
+  process.env[publica] = valor;
+}
+
 function cargarEnvDeLaRaiz(): void {
+  // Vercel y CI inyectan las claves en el entorno, no en un `.env` de disco.
+  for (const origen of Object.keys(PUBLICAS)) {
+    mapearPublicas(origen, process.env[origen]);
+  }
+
   let texto: string;
   try {
     texto = readFileSync(resolve(process.cwd(), "..", ".env"), "utf8");
   } catch {
-    return; // Sin .env no pasa nada: puede venir del entorno, como en CI.
+    return;
   }
 
   for (const linea of texto.split("\n")) {
@@ -40,12 +51,9 @@ function cargarEnvDeLaRaiz(): void {
     if (corte < 0) continue;
 
     const clave = limpia.slice(0, corte).trim();
-    const publica = PUBLICAS[clave];
-    if (!publica) continue;
-
     const valor = limpia.slice(corte + 1).trim().replace(/^['"]|['"]$/g, "");
     // Lo ya exportado gana, para que CI y un `export` puntual manden sobre el fichero.
-    if (valor && !process.env[publica]) process.env[publica] = valor;
+    mapearPublicas(clave, valor);
   }
 }
 

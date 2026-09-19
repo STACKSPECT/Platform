@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useRunsTotals } from "@/api/hooks";
+import { useRunsTotals } from "@/lib/api/hooks";
 import { useTheme } from "@/hooks/useTheme";
 import { ThemeToggle } from "../../molecules";
 import { RunsTotals, TopBar } from "../../organisms";
