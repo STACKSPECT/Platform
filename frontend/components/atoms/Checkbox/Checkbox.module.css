@@ -33,3 +33,6 @@
 .box:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .withText { width: auto; padding: 0 4px; gap: 8px; }
+
+/* El área táctil también dice que no se puede. */
+.hit:has(.box:disabled) { cursor: not-allowed; }

@@ -42,7 +42,8 @@ export function RunsScreen() {
                    onChange={s.onFilter} onClear={s.onClear} />
       </div>
       <div className={styles.table}>
-        <RunsTable runs={s.visibleRuns} selectedIds={s.selectedIds} onToggle={s.onToggle} />
+        <RunsTable runs={s.visibleRuns} selectedIds={s.selectedIds}
+                   selectionFull={s.selectionFull} onToggle={s.onToggle} />
       </div>
       <div className={styles.compare}>
         <ComparePanel pair={s.comparePair} />

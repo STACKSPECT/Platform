@@ -8,12 +8,14 @@ import { buildRows } from "./RunsTable.helper";
 type Props = {
   runs: Run[];
   selectedIds: string[];
+  /** Ya hay las que se pueden comparar: las casillas sin marcar se bloquean. */
+  selectionFull: boolean;
   onToggle: (id: string) => void;
 };
 
 /** La lista de ejecuciones. La selección para comparar va en la primera columna: el resto
  *  de la fila queda libre para navegar al detalle. */
-export function RunsTable({ runs, selectedIds, onToggle }: Props) {
+export function RunsTable({ runs, selectedIds, selectionFull, onToggle }: Props) {
   if (!runs.length) {
     return (
       <Card className={styles.card}>
@@ -44,7 +46,8 @@ export function RunsTable({ runs, selectedIds, onToggle }: Props) {
         </thead>
         <tbody>
           {buildRows(runs, selectedIds).map(({ view, selected }) => (
-            <RunRow key={view.id} view={view} selected={selected} onToggle={onToggle} />
+            <RunRow key={view.id} view={view} selected={selected}
+                  selectionBlocked={selectionFull && !selected} onToggle={onToggle} />
           ))}
         </tbody>
       </Table>

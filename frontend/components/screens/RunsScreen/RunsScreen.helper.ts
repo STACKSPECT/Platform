@@ -3,15 +3,11 @@ import type { Run } from "@/lib/supabase";
 /** Se comparan de dos en dos. */
 export const MAX_SELECTED = 2;
 
-/** Lo que hay marcado mientras el usuario no ha tocado nada: las dos primeras filas. */
-export function defaultSelection(runs: Run[]): string[] {
-  return runs.slice(0, MAX_SELECTED).map((r) => r.id);
-}
-
-/** Marca o desmarca. Con más de dos, la nueva sustituye a la más antigua. */
+/** Marca o desmarca. Con dos ya marcadas no se añade otra: hay que desmarcar antes. La
+ *  interfaz bloquea esas casillas; esto es la red de seguridad si llega un clic igualmente. */
 export function toggleSelection(selected: string[], id: string): string[] {
   if (selected.includes(id)) return selected.filter((s) => s !== id);
-  return [...selected, id].slice(-MAX_SELECTED);
+  return selected.length >= MAX_SELECTED ? selected : [...selected, id];
 }
 
 /** La pareja a comparar, o `null` si no hay dos runs elegidos que existan. */

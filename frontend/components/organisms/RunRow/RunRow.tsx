@@ -7,6 +7,8 @@ import styles from "./RunRow.module.css";
 type Props = {
   view: RunRowView;
   selected: boolean;
+  /** No se puede marcar: ya hay dos y esta no es una de ellas. */
+  selectionBlocked?: boolean;
   onToggle: (id: string) => void;
   /** Cuando exista el detalle del run: el commit pasa a enlace. */
   href?: string;
@@ -14,12 +16,14 @@ type Props = {
   onOpen?: () => void;
 };
 
-export function RunRow({ view: v, selected, onToggle, href, onOpen }: Props) {
+export function RunRow({ view: v, selected, selectionBlocked, onToggle, href, onOpen }: Props) {
   return (
     <Tr state={v.state} onClick={onOpen}>
       <Td align="center">
         <span onClick={(e) => e.stopPropagation()}>
           <Checkbox checked={selected} onChange={() => onToggle(v.id)}
+                    disabled={selectionBlocked}
+                    title={selectionBlocked ? "Ya hay dos seleccionadas: desmarca una" : undefined}
                     label={`Seleccionar ${v.commit} para comparar`} />
         </span>
       </Td>
