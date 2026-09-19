@@ -13,8 +13,20 @@ export type IdentityView = {
   clock: { value: string; unit: string };
 };
 
-function statusOf(episode: Episode, stale: boolean): IdentityView["status"] {
+/** `live`: se mira el último episodio de lo que esté corriendo. `run`: se mira un episodio
+ *  concreto de una ejecución ya hecha, y el estado dice cómo acabó. */
+export type IdentityMode = "live" | "run";
+
+function statusOf(
+  episode: Episode, stale: boolean, mode: IdentityMode,
+): IdentityView["status"] {
   if (stale) return { label: "Sin datos nuevos", tone: "warn", pulse: false };
+  if (mode === "run") {
+    if (episode.status === "running") return { label: "En curso", tone: "light", pulse: false };
+    return episode.status === "success"
+      ? { label: "Completado", tone: "ok", pulse: false }
+      : { label: "Fallo", tone: "bad", pulse: false };
+  }
   if (episode.status === "running") return { label: "En vivo", tone: "light", pulse: true };
   if (episode.status === "success") return { label: "Último", tone: "ok", pulse: false };
   return { label: "Último", tone: "muted", pulse: false };
@@ -35,10 +47,11 @@ export function elapsedSeconds(episode: Episode, events: RunEvent[]): number {
 
 export function buildIdentity(input: {
   episode: Episode; runEpisodes: Episode[]; events: RunEvent[]; stale: boolean;
+  mode?: IdentityMode;
 }): IdentityView {
-  const { episode, runEpisodes, events, stale } = input;
+  const { episode, runEpisodes, events, stale, mode = "live" } = input;
   return {
-    status: statusOf(episode, stale),
+    status: statusOf(episode, stale, mode),
     meta: [
       { label: "Tarea", value: TASK_TEXT[episode.task] ?? episode.task, mono: false },
       { label: "Nivel", value: episode.level, mono: true },
