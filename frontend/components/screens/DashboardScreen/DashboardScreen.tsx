@@ -4,7 +4,9 @@ import { Button, Card, Text } from "../../atoms";
 import {
   ChangeLegend, EmptyState, InfoMessage, InfoTip, Notice, SegmentedControl,
 } from "../../molecules";
-import { KIND_HELP, KIND_TEXT, OverviewPanel, TaskSection } from "../../organisms";
+import {
+  KIND_HELP, KIND_TEXT, OverviewPanel, ProgressPanel, TaskSection,
+} from "../../organisms";
 import { routes } from "@/lib/routes";
 import { KIND_NOTE } from "./DashboardScreen.helper";
 import styles from "./DashboardScreen.module.css";
@@ -76,7 +78,13 @@ export function DashboardScreen() {
               Elige otra clase arriba para ver las que sí hay.
             </InfoMessage>
           ) : (
-            s.sections.map((t) => <TaskSection key={t.task} view={t} />)
+            <>
+              {/* Encabeza la misma columna que las tarjetas: cómo va el conjunto se lee sin
+                  desplegar ninguna. */}
+              <ProgressPanel runs={s.runs} tasks={s.sections.map((t) => t.task)}
+                             kind={s.kind} />
+              {s.sections.map((t) => <TaskSection key={t.task} view={t} />)}
+            </>
           )}
         </div>
 

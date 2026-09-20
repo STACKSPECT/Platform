@@ -11,6 +11,7 @@ export type TrendGeometry = {
 };
 
 const W = 400;
+/** El alto de siempre. Quien quiera la curva más grande lo pasa. */
 const H = 64;
 const PAD_X = 10;
 const PAD_Y = 10;
@@ -20,16 +21,18 @@ const MAX_DOTS = 40;
 /** De valores a coordenadas. La escala va del mínimo al máximo de LA SERIE: enseña la forma
  *  de la evolución, no el valor absoluto (el valor ya lo dice el número de al lado). Una
  *  serie plana se dibuja en el centro y no como una subida exagerada de nada. */
-export function trendGeometry(points: TrendPoint[]): TrendGeometry {
+export function trendGeometry(
+  points: TrendPoint[], height: number = H, width: number = W,
+): TrendGeometry {
   const values = points.map((p) => p.value).filter((v): v is number => v != null);
   const lo = Math.min(...values);
   const hi = Math.max(...values);
   const span = hi - lo;
 
   const x = (i: number) =>
-    points.length === 1 ? W / 2 : PAD_X + (i / (points.length - 1)) * (W - PAD_X * 2);
+    points.length === 1 ? width / 2 : PAD_X + (i / (points.length - 1)) * (width - PAD_X * 2);
   const y = (v: number) =>
-    span === 0 ? H / 2 : PAD_Y + ((hi - v) / span) * (H - PAD_Y * 2);
+    span === 0 ? height / 2 : PAD_Y + ((hi - v) / span) * (height - PAD_Y * 2);
 
   let path = "";
   let pen = false;
@@ -48,7 +51,7 @@ export function trendGeometry(points: TrendPoint[]): TrendGeometry {
 
   const first = values[0];
   return {
-    width: W, height: H, path: path.trim(), dots,
+    width, height, path: path.trim(), dots,
     baselineY: first == null || values.length < 2 ? null : y(first),
   };
 }
