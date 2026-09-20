@@ -34,7 +34,15 @@ FAILURES = frozenset(
 
 # Tareas que el repo sabe medir. La tarea es un campo, no una rama del código: así la
 # línea base de inducción sigue siendo comparable cuando entre el paletizado.
-TASKS = frozenset({"induction", "palletizing", "paletizado-guionizado"})
+#
+# En el paletizado real la tarea es DE DÓNDE SE COGE el paquete —mesa, cinta o camión,
+# con el mismo identificador que `runs.config.source`—, y no una etiqueta única para los
+# nueve niveles: son tres tareas distintas y compararlas entre sí es justo lo que se le
+# pide a la plataforma. Los otros tres son histórico y siguen siendo almacenables.
+TASKS = frozenset({
+    "table", "conveyor", "truck",
+    "induction", "palletizing", "paletizado-guionizado",
+})
 
 
 @dataclass
