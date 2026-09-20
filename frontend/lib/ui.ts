@@ -158,7 +158,13 @@ export function clockTime(iso: string | null | undefined): string {
   });
 }
 
+/* La tarea es de dónde se coge el paquete. El identificador viaja en inglés —el mismo
+ * que `runs.config.source`— y se traduce aquí: la pantalla no lo enseña crudo. */
 export const TASK_TEXT: Record<string, string> = {
+  table: "mesa",
+  conveyor: "cinta",
+  truck: "camión",
+  // Histórico, de antes de separar la tarea por fuente.
   induction: "inducción",
   palletizing: "paletizado",
   "paletizado-guionizado": "paletizado guionizado",

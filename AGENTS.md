@@ -214,9 +214,13 @@ medir algo nuevo no obliga a migrar el esquema a las tres de la mañana.
 Vistas: `v_run_summary`, `v_episode_summary`, `v_failure_breakdown`. Realtime está
 publicado en `events`, `pallet_states` y `episodes`; Live se alimenta de ahí.
 
-`task` es un campo (`induction` | `palletizing`), no una rama del código: así la línea
-base de inducción sigue siendo comparable cuando entre el paletizado, y el jurado ve
-evolución en vez de borrón y cuenta nueva.
+`task` es un campo, no una rama del código: así la línea base sigue siendo comparable
+cuando entra una tarea nueva, y el jurado ve evolución en vez de borrón y cuenta nueva.
+En el paletizado real la tarea es **de dónde se coge** el paquete —`table` | `conveyor`
+| `truck`, el mismo identificador que `runs.config.source`—, que es lo que permite
+comparar mesa, cinta y camión entre sí. `induction`, `palletizing` y
+`paletizado-guionizado` se quedan en el CHECK como histórico: dice qué se puede
+ALMACENAR, no qué se produce hoy.
 
 ---
 

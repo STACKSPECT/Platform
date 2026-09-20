@@ -93,7 +93,11 @@ begin
   loop
     execute format('alter table %I drop constraint if exists %I', t, t || '_task_check');
     execute format(
-      'alter table %I add constraint %I check (task in (''induction'', ''palletizing'', ''paletizado-guionizado''))',
+      'alter table %I add constraint %I check (task in ('
+      -- Vigentes: la fuente de la que se coge el paquete, igual que config.source.
+      '''table'', ''conveyor'', ''truck'', '
+      -- Histórico: lo que ya está subido. Este CHECK dice qué se puede ALMACENAR.
+      '''induction'', ''palletizing'', ''paletizado-guionizado''))',
       t, t || '_task_check');
   end loop;
 end $$;
