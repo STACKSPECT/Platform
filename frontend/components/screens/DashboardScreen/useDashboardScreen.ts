@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useRuns } from "@/lib/api/hooks";
 import { configured } from "@/lib/supabase";
-import type { DataKind } from "../../organisms/LevelCard";
+import { kindOf, type DataKind } from "../../organisms/LevelCard";
 import {
   KIND_ORDER, RUN_LIMIT, buildDashboard, defaultKind, kindCounts,
 } from "./DashboardScreen.helper";
@@ -30,6 +30,9 @@ export function useDashboardScreen() {
     kind,
     options: KIND_ORDER.map((k) => ({ k, count: counts[k] })),
     sections: buildDashboard(runs, kind),
+    // Las mismas ejecuciones que alimentan las tarjetas, sin agrupar por nivel: el panel
+    // de arriba mira la tarea entera.
+    runs: runs.filter((r) => kindOf(r) === kind),
     totalRuns: runs.length,
     // El selector devuelve un texto: solo vale si es una de las clases que existen.
     onKind: (value: string) => {

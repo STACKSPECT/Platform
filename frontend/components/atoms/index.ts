@@ -20,6 +20,8 @@ export type { SelectOption } from "./Select";
 export { Swatch } from "./Swatch";
 export { Table, Th, Td, Tr } from "./Table";
 export { Sparkline } from "./Sparkline";
+export { Donut } from "./Donut";
+export type { DonutSegment } from "./Donut";
 export { Logo } from "./Logo";
 export { IconButton } from "./IconButton";
 export { Trend } from "./Trend";

@@ -22,3 +22,4 @@ export type { DataKind, LevelCardView } from "./LevelCard";
 export { TaskSection, anchorOf } from "./TaskSection";
 export type { TaskSectionView } from "./TaskSection";
 export { OverviewPanel } from "./OverviewPanel";
+export { ProgressPanel } from "./ProgressPanel";

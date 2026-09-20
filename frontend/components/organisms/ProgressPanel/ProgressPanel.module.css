@@ -1,0 +1,43 @@
+/* Mismo aire que las demás tarjetas del Resumen: el panel no estrena un lenguaje propio.
+   El ancho lo mide el PANEL y no la ventana, porque vive en una columna que cambia de
+   tamaño con el diseño de la pantalla (igual que LevelCard). */
+.panel { padding: 20px 24px 22px; gap: 18px; container-type: inline-size; }
+
+.head { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; }
+.heading { display: flex; align-items: center; gap: 4px; }
+.title { font-weight: 700; }
+
+.block { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.blockHead { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 14px; }
+
+/* A la izquierda las cifras y, debajo, la curva; a la derecha SOLO el anillo. El anillo no
+   crece: su tamaño lo fija el propio dibujo, así que la curva llena lo que queda y acaba
+   justo donde el anillo empieza. Por debajo del ancho de corte, uno encima del otro. */
+.body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px 32px; }
+@container (min-width: 620px) {
+  .body { grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
+}
+
+.left { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+
+/* Dos por fila en cuanto haya sitio: cuatro cifras en línea obligan a estrecharlas. */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 16px 20px;
+  align-content: start;
+}
+.stat { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+/* El anillo manda en su columna y la leyenda va debajo, no al lado: así el dibujo no pierde
+   ancho por los nombres de las causas. */
+.outcomes { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 0; }
+.legend { display: flex; flex-direction: column; gap: 6px; min-width: 0; align-self: stretch; }
+
+/* La curva, dentro de la columna izquierda y a todo el ancho de esa columna. */
+.curve { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.chartHead { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+
+@media (max-width: 860px) {
+  .panel { padding: 18px; }
+}
